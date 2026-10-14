@@ -20,7 +20,10 @@ const BASE_URL = (() => {
     return s ? s.replace(/\/+$/, '') : location.origin;
 })();
 
-const url = (p) => `${BASE_URL}/${p.replace(/^\/+/, '')}`;
+const url = (p) => {
+    if (/^https?:\/\//i.test(p)) return p; // уже абсолютный
+    return `${BASE_URL}/${p.replace(/^\/+/, '')}`;
+};
 
 // ============================================
 // СОСТОЯНИЕ
@@ -39,8 +42,11 @@ const state = {
 
 const now = () => Date.now() + state.serverOffset;
 
-// Максимальное время, в течение которого доверяем сохранённому смещению (мс)
-const TIME_TRUST_MAX_AGE = 6 * 60 * 60 * 1000; // 6 часов
+// Доверяем сохранённому смещению не дольше 6 часов
+const TIME_TRUST_MAX_AGE = 6 * 60 * 60 * 1000;
+
+// Последний успешный источник времени
+let lastTimeSource = null;
 
 // ============================================
 // DOM-хелперы
@@ -89,6 +95,7 @@ function haversineMeters(lat1, lon1, lat2, lon2) {
 // ============================================
 function toast(message, type = 'info', duration = 4000) {
     const root = $('#toast-root');
+    if (!root) return;
     const el = document.createElement('div');
     el.className = `toast ${type}`;
     el.textContent = message;
@@ -167,7 +174,7 @@ function getCurrentPosition(force = false) {
 }
 
 // ============================================
-// ПРОВЕРКИ
+// ПРОВЕРКИ: ГЕОЗОНА
 // ============================================
 function checkGeofence(site, position) {
     const gf = site.geofence;
@@ -182,11 +189,14 @@ function checkGeofence(site, position) {
     };
 }
 
+// ============================================
+// ПРОВЕРКИ: РАСПИСАНИЕ
+// ============================================
 function checkSchedule(site) {
     const sc = site.schedule;
     if (!sc) return { ok: true, kind: 'none' };
     const date = new Date(now());
-    const tz = sc.timezone || 'UTC';
+    const tz = sc.timezone || 'Asia/Krasnoyarsk';
     const dayFmt = new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'short' });
     const dayMap = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
     const curDay = dayMap[dayFmt.format(date)];
@@ -209,8 +219,7 @@ function checkSchedule(site) {
 }
 
 // ============================================
-// ИНТЕРВАЛЬНЫЙ ДОСТУП
-// "каждые N часов окно M минут"
+// ПРОВЕРКИ: ИНТЕРВАЛЬНЫЙ ДОСТУП
 // ============================================
 function checkIntervalAccess(site) {
     const ia = site.intervalAccess;
@@ -281,10 +290,8 @@ function isTimeTrusted() {
 }
 
 // ============================================
-// ДЕНЕЖНЫЙ ЛИМИТ (localStorage + IndexedDB)
+// IndexedDB — второй слой для счётчиков
 // ============================================
-
-// --- IndexedDB ---
 const IDB_NAME = 'trenerUsage';
 const IDB_STORE = 'usage';
 
@@ -325,18 +332,6 @@ async function idbSet(key, value) {
     } catch { return false; }
 }
 
-async function idbDelete(key) {
-    try {
-        const db = await idbOpen();
-        return await new Promise((resolve) => {
-            const tx = db.transaction(IDB_STORE, 'readwrite');
-            tx.objectStore(IDB_STORE).delete(key);
-            tx.oncomplete = () => resolve(true);
-            tx.onerror = () => resolve(false);
-        });
-    } catch { return false; }
-}
-
 async function idbClear() {
     try {
         const db = await idbOpen();
@@ -349,34 +344,31 @@ async function idbClear() {
     } catch { return false; }
 }
 
-// --- Ключи ---
+// ============================================
+// ЛИМИТ ВРЕМЕНИ
+// ============================================
 function todayKey() {
     const d = new Date(now());
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 const usageKey = (id) => `usage:${id}:${todayKey()}`;
 
-// --- Чтение/запись с двух слоёв ---
-// Синхронный "быстрый" get из localStorage
 function getUsedMsSync(id) {
     return parseInt(localStorage.getItem(usageKey(id)) || '0', 10);
 }
 
-// Асинхронный get с учётом IndexedDB (берём максимум)
 async function getUsedMs(id) {
     const ls = getUsedMsSync(id);
     const idb = parseInt((await idbGet(usageKey(id))) || 0, 10);
     return Math.max(ls, idb);
 }
 
-// Запись: пишем в оба слоя
 async function setUsedMs(id, ms) {
     const value = Math.max(0, ms);
     localStorage.setItem(usageKey(id), String(value));
     await idbSet(usageKey(id), value);
 }
 
-// Добавление: учитываем максимум из двух слоёв
 async function addUsedMs(id, ms) {
     const current = await getUsedMs(id);
     const newValue = current + ms;
@@ -384,32 +376,7 @@ async function addUsedMs(id, ms) {
     return newValue;
 }
 
-// ============================================
-// ПРОВЕРКА ЛИМИТА
-// ============================================
-// Синхронная быстрая проверка (для карточки) — только localStorage
-// Для точной — используется async-версия
-function checkDailyLimitSync(site) {
-    if (!isTimeTrusted()) {
-        return {
-            ok: false, used: 0, limit: site.limitMs || 0, left: 0, percent: 0,
-            timeError: true,
-            reason: 'Время не синхронизировано. Проверьте интернет.'
-        };
-    }
-    const limit = site.limitMs || 0;
-    if (limit <= 0) return { ok: true, used: 0, limit: 0, left: 0, percent: 0 };
-    const used = getUsedMsSync(site.id);
-    const left = Math.max(0, limit - used);
-    const percent = Math.min(100, (used / limit) * 100);
-    if (used >= limit) return {
-        ok: false, used, limit, left: 0, percent: 100,
-        reason: `Лимит исчерпан (${formatMinutes(used)}/${formatMinutes(limit)} мин)`
-    };
-    return { ok: true, used, limit, left, percent };
-}
-
-// Асинхронная точная проверка (для tryOpenSite)
+// Точная проверка лимита (async)
 async function checkDailyLimit(site) {
     if (!isTimeTrusted()) {
         return {
@@ -659,33 +626,48 @@ async function syncTime() {
 
     for (const p of providers) {
         try {
-            const res = await fetch(p.url, { cache: 'no-store' });
+            const res = await fetch(url(p.url), { cache: 'no-store' });
             if (!res.ok) continue;
             const json = await res.json();
-            const raw = p.path.split('.').reduce((a, k) => a?.[k], json);
-            if (raw == null) continue;
-            const ms = raw * (p.multiplier || 1);
-            if (!isFinite(ms) || ms <= 0) continue;
 
-            state.serverOffset = ms - Date.now();
+            let serverMs;
+
+            if (p.parse === 'date' || p.parse === 'iso') {
+                const raw = p.path ? p.path.split('.').reduce((a, k) => a?.[k], json) : json;
+                if (raw == null) continue;
+                serverMs = Date.parse(raw);
+            } else {
+                const raw = p.path.split('.').reduce((a, k) => a?.[k], json);
+                if (raw == null) continue;
+                serverMs = raw * (p.multiplier || 1);
+            }
+
+            if (!isFinite(serverMs) || serverMs <= 0) continue;
+
+            state.serverOffset = serverMs - Date.now();
             state.serverSynced = true;
+            lastTimeSource = p.name;
 
-            // Сохраняем смещение и метку
             localStorage.setItem('serverOffset', String(state.serverOffset));
             localStorage.setItem('serverSyncAt', String(Date.now()));
+            localStorage.setItem('serverSource', p.name);
 
             updateTimeStatus(true, p.name);
             return true;
-        } catch {}
+        } catch (e) {
+            console.warn(`⚠️ ${p.name}:`, e.message);
+        }
     }
 
     // Фолбэк: последнее сохранённое смещение
     const saved = localStorage.getItem('serverOffset');
     const savedAt = parseInt(localStorage.getItem('serverSyncAt') || '0', 10);
+    const savedSource = localStorage.getItem('serverSource') || 'кэш';
 
     if (saved && Date.now() - savedAt < TIME_TRUST_MAX_AGE) {
         state.serverOffset = parseInt(saved, 10);
         state.serverSynced = false;
+        lastTimeSource = savedSource;
         updateTimeStatus(false);
         console.warn('⚠️ Время из кэша:', new Date(now()).toISOString());
         return false;
@@ -693,22 +675,26 @@ async function syncTime() {
 
     state.serverOffset = 0;
     state.serverSynced = false;
+    lastTimeSource = null;
     updateTimeStatus(false);
+    console.warn('⚠️ Время НЕ синхронизировано');
     return false;
 }
 
 function updateTimeStatus(ok, source) {
     const el = $('#time-status');
     if (!el) return;
+
     if (ok) {
         const drift = Math.round(state.serverOffset / 1000);
         el.className = 'time-status ok';
         el.textContent = `⏱ ${drift >= 0 ? '+' : ''}${drift}с`;
         el.title = `Источник: ${source}`;
     } else if (isTimeTrusted()) {
+        const drift = Math.round(state.serverOffset / 1000);
         el.className = 'time-status ok';
-        el.textContent = `⏱ кэш`;
-        el.title = 'Время из сохранённого смещения';
+        el.textContent = `⏱ ${drift >= 0 ? '+' : ''}${drift}с`;
+        el.title = `Источник: кэш (${lastTimeSource || '—'})`;
     } else {
         el.className = 'time-status error';
         el.textContent = '⚠ время';
@@ -800,7 +786,6 @@ async function buildSiteCard(site, pos) {
     const card = document.createElement('div');
     card.className = 'site-card';
 
-    // Проверки — точные, с IndexedDB
     const lim = await checkDailyLimit(site);
     const sch = checkSchedule(site);
     const geo = site.geofence ? checkGeofence(site, pos) : { ok: true, kind: 'none' };
@@ -810,15 +795,12 @@ async function buildSiteCard(site, pos) {
 
     const allOk = lim.ok && sch.ok && geo.ok && tests.ok && ia.ok;
 
-    // Чипы статуса
     const chips = [];
 
-    // Время недостоверно — предупреждение
     if (lim.timeError) {
         chips.push(`<span class="status-chip error">⚠ время</span>`);
     }
 
-    // Лимит
     if (lim.limit > 0) {
         const used = formatMinutes(lim.used);
         const tot = formatMinutes(lim.limit);
@@ -828,12 +810,10 @@ async function buildSiteCard(site, pos) {
         chips.push(`<span class="status-chip ${chipClass}">⏱ ${used}/${tot} мин</span>`);
     }
 
-    // Расписание
     if (site.schedule) {
         chips.push(`<span class="status-chip ${sch.ok ? 'ok' : 'error'}">🕐 ${sch.ok ? 'Открыто' : 'Закрыто'}</span>`);
     }
 
-    // Интервальный доступ
     if (site.intervalAccess?.enabled) {
         if (ia.ok && ia.kind === 'open') {
             chips.push(`<span class="status-chip ok">⏳ Окно: ${formatTime(ia.leftMs)}</span>`);
@@ -846,7 +826,6 @@ async function buildSiteCard(site, pos) {
         }
     }
 
-    // Геоточка
     if (site.geofence) {
         if (geo.ok && geo.distance != null) {
             chips.push(`<span class="status-chip ok">📍 ${Math.round(geo.distance)} м</span>`);
@@ -857,17 +836,14 @@ async function buildSiteCard(site, pos) {
         }
     }
 
-    // Тесты
     if (tests.total > 0) {
         chips.push(`<span class="status-chip ${tests.ok ? 'ok' : 'error'}">📚 ${tests.passed}/${tests.total}</span>`);
     }
 
-    // Пароль
     if (hasPwd) {
         chips.push(`<span class="status-chip info">🔒 Пароль</span>`);
     }
 
-    // Прогресс-бар лимита
     const barClass = lim.percent >= 100 ? 'over' : lim.percent >= 80 ? 'warn' : '';
     const barHtml = lim.limit > 0
         ? `<div class="limit-bar"><div class="limit-bar-fill ${barClass}" style="width:${lim.percent}%"></div></div>`
@@ -1001,7 +977,7 @@ async function showSiteDetails(site, pos) {
 // ОТКРЫТИЕ САЙТА
 // ============================================
 async function tryOpenSite(site) {
-    // 1. Проверка доверия времени
+    // 1. Время
     if (!isTimeTrusted()) {
         toast('⚠ Время не синхронизировано. Подключите интернет.', 'error', 6000);
         return;
@@ -1062,7 +1038,6 @@ function openSiteContent(site) {
         return;
     }
 
-    // Android
     if (window.AndroidBridge?.openSite) {
         window.AndroidBridge.openSite(site.url, site.id, site.limitMs);
         trackUsage(site);
@@ -1070,7 +1045,6 @@ function openSiteContent(site) {
         return;
     }
 
-    // Браузер
     const win = window.open(site.url, '_blank');
     if (!win) { toast('Разрешите всплывающие окна', 'error'); return; }
 
@@ -1122,7 +1096,6 @@ async function renderSummary() {
 
     dateEl.innerHTML = `${days[d.getDay()]}, ${d.toLocaleDateString('ru-RU')}${trustBadge}`;
 
-    // Собираем с учётом IndexedDB
     const items = [];
     for (const s of sites) {
         const used = await getUsedMs(s.id);
@@ -1165,7 +1138,6 @@ async function renderSummary() {
     }).join('');
 
     list.innerHTML = totalHtml + itemsHtml;
-    // Кнопки сброса здесь НЕТ — только в Настройках (отладка)
 }
 
 // ============================================
@@ -1318,6 +1290,7 @@ function renderSettings() {
     $('#diag-offset').textContent = `${Math.round(state.serverOffset / 1000)}с`;
     $('#diag-now').textContent = new Date(now()).toLocaleString('ru-RU');
     $('#diag-time-trust').textContent = isTimeTrusted() ? '✓ доверенное' : '⚠ нет';
+    $('#diag-time-source').textContent = lastTimeSource || (state.serverSynced ? '—' : 'кэш');
     $('#diag-geo').textContent = state.lastPosition
         ? `${state.lastPosition.lat.toFixed(4)}, ${state.lastPosition.lon.toFixed(4)}`
         : 'нет';
@@ -1368,7 +1341,6 @@ $('#check-btn').addEventListener('click', checkAnswers);
 $('#reset-btn').addEventListener('click', resetQuiz);
 $('#back-btn').addEventListener('click', goBack);
 
-// Сброс отметок тестов
 $('#reset-tests-btn').addEventListener('click', () => {
     if (!confirm('Сбросить все отметки тестов?')) return;
     window.TEST_REGISTRY.forEach(t => unmarkTestPassed(t.id));
@@ -1377,7 +1349,6 @@ $('#reset-tests-btn').addEventListener('click', () => {
     renderTopics();
 });
 
-// Полный сброс (localStorage + IndexedDB)
 $('#reset-all-btn').addEventListener('click', async () => {
     if (!confirm('Полный сброс? Будут удалены все счётчики, отметки тестов и попытки паролей.\n\nЭто действие необратимо.')) return;
     localStorage.clear();
@@ -1385,7 +1356,6 @@ $('#reset-all-btn').addEventListener('click', async () => {
     location.reload();
 });
 
-// Отладочный сброс счётчиков времени
 $('#debug-reset-usage').addEventListener('click', async () => {
     const sites = window.SITES_CONFIG?.sites || [];
     if (!confirm(`Сбросить счётчики времени для ${sites.length} сайтов?\n\nЭто действие только для отладки.`)) return;
@@ -1422,22 +1392,19 @@ $('#debug-reset-usage').addEventListener('click', async () => {
     window.addEventListener('beforeunload', async () => {
         if (state.activeSiteId) {
             const elapsed = Date.now() - state.activeSiteStartedAt;
-            // best effort
             await addUsedMs(state.activeSiteId, elapsed);
         }
     });
 
-    setInterval(syncTime, cfg?.timeSource?.resyncIntervalMs || 30000);
+    setInterval(syncTime, cfg?.timeSource?.resyncIntervalMs || 60000);
 
-    // Обновление сводки раз в 5 секунд, если открыта
     setInterval(() => {
         if ($('#screen-summary')?.classList.contains('active')) renderSummary();
     }, 5000);
 
-    // Обновление карточек сайтов раз в 15 секунд, если открыт экран
     setInterval(() => {
         if ($('#screen-sites')?.classList.contains('active')) renderSites();
     }, 15000);
 
-    console.log('✅ Готово');
+    console.log('✅ Готово. Время:', state.serverSynced ? 'синхронизировано' : (isTimeTrusted() ? 'кэш' : 'нет'));
 })();

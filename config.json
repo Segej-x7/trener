@@ -1,23 +1,29 @@
 {
-  "version": "1.2.0",
+  "version": "1.4.0",
   "appName": "Тренажёр HTML, CSS & JS",
 
   "timeSource": {
     "providers": [
       {
-        "name": "Coinbase",
-        "url": "https://api.coinbase.com/v2/time",
-        "path": "data.epoch",
-        "multiplier": 1000
+        "name": "TimeAPI.io",
+        "url": "https://timeapi.io/api/Time/current/zone?timeZone=Asia/Krasnoyarsk",
+        "path": "dateTime",
+        "parse": "date"
       },
       {
         "name": "WorldTimeAPI",
-        "url": "https://worldtimeapi.org/api/ip",
+        "url": "https://worldtimeapi.org/api/timezone/Asia/Krasnoyarsk",
         "path": "unixtime",
         "multiplier": 1000
+      },
+      {
+        "name": "GitHub Fallback",
+        "url": "access/time.json",
+        "path": "epochMs",
+        "multiplier": 1
       }
     ],
-    "resyncIntervalMs": 30000
+    "resyncIntervalMs": 60000
   },
 
   "access": {
@@ -25,6 +31,7 @@
     "geopointsFile":   "access/geopoints.json",
     "schedulesFile":   "access/schedules.json",
     "testSetsFile":    "access/test-sets.json",
+    "timeFile":        "access/time.json",
     "blockDurationMs": 7200000
   },
 

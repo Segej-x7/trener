@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#3454b4">
     <meta name="description" content="Тренажёр HTML, CSS и JavaScript">
+
+    <!-- PWA -->
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Тренажёр">
@@ -84,7 +87,6 @@
 </main>
 
 <!-- ============ ЭКРАН 3: СВОДКА ============ -->
-<!-- Кнопка сброса УБРАНА. Сброс — только в Настройках (отладка). -->
 <main id="screen-summary" class="screen">
     <div class="screen-header">
         <h1>📊 Сводка за сегодня</h1>
@@ -106,6 +108,7 @@
         <div class="diag-row"><span>Смещение времени</span><code id="diag-offset"></code></div>
         <div class="diag-row"><span>Текущее серверное время</span><code id="diag-now"></code></div>
         <div class="diag-row"><span>Доверие времени</span><code id="diag-time-trust"></code></div>
+        <div class="diag-row"><span>Источник времени</span><code id="diag-time-source"></code></div>
         <div class="diag-row"><span>Геопозиция</span><code id="diag-geo"></code></div>
         <div class="diag-row"><span>Загружено тестов</span><code id="diag-tests"></code></div>
         <div class="diag-row"><span>Загружено сайтов</span><code id="diag-sites"></code></div>
@@ -123,7 +126,6 @@
         <button id="reset-all-btn" class="btn btn-danger btn-full">Полный сброс (localStorage + IndexedDB)</button>
     </div>
 
-    <!-- Отладочная секция: счётчики времени -->
     <div class="settings-group" id="debug-group">
         <h3>🔧 Отладка</h3>
         <p class="hint">Только для проверки правил. В обычной работе не используйте.</p>
