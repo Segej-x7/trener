@@ -1,0 +1,20 @@
+{
+  "tests": [
+    { "id": "html-basics",           "file": "tests/html/basics.json",           "category": "html", "title": "HTML: Основы документа" },
+    { "id": "html-formatting",       "file": "tests/html/formatting.json",       "category": "html", "title": "HTML: Форматирование текста" },
+    { "id": "html-forms-frames",     "file": "tests/html/forms-frames.json",     "category": "html", "title": "HTML: Формы и фреймы" },
+    { "id": "html-media-links",      "file": "tests/html/media-links.json",      "category": "html", "title": "HTML: Медиа, ссылки, списки" },
+    { "id": "html-semantics-tables", "file": "tests/html/semantics-tables.json", "category": "html", "title": "HTML: Семантика, таблицы, мета" },
+
+    { "id": "css-basics",            "file": "tests/css/basics.json",            "category": "css",  "title": "CSS: Основы и цвет" },
+    { "id": "css-text-font",         "file": "tests/css/text-font.json",         "category": "css",  "title": "CSS: Текст и шрифты" },
+    { "id": "css-box-model",         "file": "tests/css/box-model.json",         "category": "css",  "title": "CSS: Блочная модель" },
+    { "id": "css-position-display",  "file": "tests/css/position-display.json",  "category": "css",  "title": "CSS: Позиционирование и display" },
+    { "id": "css-flex-grid",         "file": "tests/css/flex-grid.json",         "category": "css",  "title": "CSS: Flexbox и Grid" },
+    { "id": "css-animations",        "file": "tests/css/animations.json",        "category": "css",  "title": "CSS: Анимации и переходы" },
+
+    { "id": "js-basics",             "file": "tests/js/basics.json",             "category": "js",   "title": "JS: Основы" },
+    { "id": "js-arrays",             "file": "tests/js/arrays.json",             "category": "js",   "title": "JS: Массивы" },
+    { "id": "js-functions",          "file": "tests/js/functions.json",          "category": "js",   "title": "JS: Функции" }
+  ]
+}

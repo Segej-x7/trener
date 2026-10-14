@@ -1,0 +1,32 @@
+{
+  "id": "css-text-font",
+  "category": "css",
+  "title": "CSS: Текст и шрифты",
+  "description": "Шрифты, текст, типографика.",
+  "questions": [
+    { "id": 1, "type": "single", "question": "Какое свойство задаёт семейство шрифтов?", "options": ["font-style", "font-family", "font-name", "font-type"], "correct": [1], "explanation": "font-family." },
+    { "id": 2, "type": "single", "question": "Какое свойство задаёт размер шрифта?", "options": ["text-size", "font-size", "size", "font-scale"], "correct": [1], "explanation": "font-size." },
+    { "id": 3, "type": "single", "question": "Какое свойство задаёт жирность?", "options": ["font-bold", "font-weight", "weight", "font-thickness"], "correct": [1], "explanation": "font-weight." },
+    { "id": 4, "type": "single", "question": "Какое свойство задаёт курсив?", "options": ["font-weight", "font-style", "text-decoration", "font-variant"], "correct": [1], "explanation": "font-style." },
+    { "id": 5, "type": "single", "question": "Какое свойство задаёт регистр текста?", "options": ["text-transform", "font-variant", "text-case", "uppercase"], "correct": [0], "explanation": "text-transform." },
+    { "id": 6, "type": "single", "question": "Какое свойство задаёт выравнивание по горизонтали?", "options": ["vertical-align", "text-align", "align-text", "justify"], "correct": [1], "explanation": "text-align." },
+    { "id": 7, "type": "single", "question": "Какое свойство задаёт высоту строки?", "options": ["line-height", "text-height", "row-height", "leading"], "correct": [0], "explanation": "line-height." },
+    { "id": 8, "type": "single", "question": "Какое свойство задаёт расстояние между буквами?", "options": ["letter-spacing", "word-spacing", "char-spacing", "text-spacing"], "correct": [0], "explanation": "letter-spacing." },
+    { "id": 9, "type": "single", "question": "Какое свойство задаёт расстояние между словами?", "options": ["letter-spacing", "word-spacing", "text-spacing", "gap"], "correct": [1], "explanation": "word-spacing." },
+    { "id": 10, "type": "single", "question": "Какое свойство задаёт отступ первой строки?", "options": ["padding-left", "text-indent", "margin-left", "first-line"], "correct": [1], "explanation": "text-indent." },
+    { "id": 11, "type": "single", "question": "Какое свойство задаёт тень текста?", "options": ["box-shadow", "text-shadow", "font-shadow", "shadow"], "correct": [1], "explanation": "text-shadow." },
+    { "id": 12, "type": "single", "question": "Какое свойство задаёт украшение текста?", "options": ["text-style", "text-decoration", "font-decoration", "underline"], "correct": [1], "explanation": "text-decoration." },
+    { "id": 13, "type": "single", "question": "Какое свойство задаёт цвет украшения?", "options": ["text-color", "text-decoration-color", "color", "decoration-color"], "correct": [1], "explanation": "text-decoration-color." },
+    { "id": 14, "type": "single", "question": "Какое свойство задаёт стиль линии украшения?", "options": ["text-decoration-line", "text-decoration-style", "text-style", "line-style"], "correct": [1], "explanation": "text-decoration-style." },
+    { "id": 15, "type": "single", "question": "Какое свойство управляет пробелами?", "options": ["white-space", "space", "text-space", "word-wrap"], "correct": [0], "explanation": "white-space." },
+    { "id": 16, "type": "single", "question": "Какое свойство управляет переносом длинных слов?", "options": ["word-wrap", "text-wrap", "line-break", "word-break"], "correct": [0], "explanation": "word-wrap." },
+    { "id": 17, "type": "single", "question": "Какое свойство указывает, как переносятся слова?", "options": ["word-wrap", "word-break", "line-break", "hyphens"], "correct": [1], "explanation": "word-break." },
+    { "id": 18, "type": "single", "question": "Какое свойство управляет расстановкой переносов?", "options": ["word-break", "hyphens", "line-break", "text-hyphens"], "correct": [1], "explanation": "hyphens." },
+    { "id": 19, "type": "single", "question": "Какое свойство задаёт ориентацию текста?", "options": ["text-orientation", "writing-mode", "direction", "text-direction"], "correct": [0], "explanation": "text-orientation." },
+    { "id": 20, "type": "single", "question": "Какое свойство задаёт направление текста?", "options": ["direction", "text-direction", "writing-mode", "orientation"], "correct": [0], "explanation": "direction." },
+    { "id": 21, "type": "single", "question": "Какое свойство задаёт вертикальное выравнивание?", "options": ["text-align", "vertical-align", "align-items", "align-self"], "correct": [1], "explanation": "vertical-align." },
+    { "id": 22, "type": "single", "question": "Какое свойство управляет переполнением текста?", "options": ["overflow", "text-overflow", "clip", "hidden"], "correct": [1], "explanation": "text-overflow." },
+    { "id": 23, "type": "single", "question": "Какое свойство задаёт кавычки для цитат?", "options": ["content", "quotes", "quote-style", "citation"], "correct": [1], "explanation": "quotes." },
+    { "id": 24, "type": "multiple", "question": "Какие @-правила относятся к шрифтам?", "options": ["@font-face", "@font-feature-values", "@charset", "@import"], "correct": [0, 1, 2, 3], "explanation": "Все четыре." }
+  ]
+}

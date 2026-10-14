@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#3454b4">
+    <meta name="description" content="Тренажёр HTML, CSS и JavaScript">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Тренажёр">
+
+    <link rel="manifest" href="./manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+    <link rel="apple-touch-icon" href="./icon-192.png">
+
+    <title>Тренажёр HTML, CSS & JS</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ============ ВЕРХНЯЯ ПАНЕЛЬ ============ -->
+<header class="app-header">
+    <div class="app-title">
+        <span class="app-logo">🎨</span>
+        <span>Тренажёр</span>
+    </div>
+    <div id="time-status" class="time-status" title="Синхронизация времени"></div>
+</header>
+
+<!-- ============ ВКЛАДКИ ============ -->
+<nav class="tabs-nav">
+    <button class="nav-tab active" data-screen="topics">📚 Темы</button>
+    <button class="nav-tab" data-screen="sites">🌐 Сайты</button>
+    <button class="nav-tab" data-screen="summary">📊 Сводка</button>
+    <button class="nav-tab" data-screen="settings">⚙️</button>
+</nav>
+
+<!-- ============ ЭКРАН 1: ТЕМЫ ============ -->
+<main id="screen-topics" class="screen active">
+    <div class="screen-header">
+        <h1>Темы для изучения</h1>
+        <p>Выберите тему — пройдите тест — откройте новые ресурсы</p>
+    </div>
+
+    <div class="category-section">
+        <button class="category-header" data-target="html-topics">
+            <span class="cat-icon">📄</span>
+            <span class="cat-name">HTML</span>
+            <span class="cat-count" id="html-count"></span>
+            <span class="arrow">▾</span>
+        </button>
+        <div class="topic-list collapsed" id="html-topics"></div>
+    </div>
+
+    <div class="category-section">
+        <button class="category-header" data-target="css-topics">
+            <span class="cat-icon">🎨</span>
+            <span class="cat-name">CSS</span>
+            <span class="cat-count" id="css-count"></span>
+            <span class="arrow">▾</span>
+        </button>
+        <div class="topic-list collapsed" id="css-topics"></div>
+    </div>
+
+    <div class="category-section">
+        <button class="category-header" data-target="js-topics">
+            <span class="cat-icon">⚡</span>
+            <span class="cat-name">JavaScript</span>
+            <span class="cat-count" id="js-count"></span>
+            <span class="arrow">▾</span>
+        </button>
+        <div class="topic-list collapsed" id="js-topics"></div>
+    </div>
+</main>
+
+<!-- ============ ЭКРАН 2: САЙТЫ ============ -->
+<main id="screen-sites" class="screen">
+    <div class="screen-header">
+        <h1>Доступные ресурсы</h1>
+        <p>Все правила проверяются автоматически</p>
+        <div id="geo-status" class="geo-status"></div>
+    </div>
+    <div id="sites-list" class="sites-list"></div>
+</main>
+
+<!-- ============ ЭКРАН 3: СВОДКА ============ -->
+<main id="screen-summary" class="screen">
+    <div class="screen-header">
+        <h1>📊 Сводка за сегодня</h1>
+        <p id="summary-date"></p>
+    </div>
+    <div id="summary-list" class="summary-list"></div>
+    <button id="reset-usage-btn" class="btn btn-danger btn-full">Сбросить счётчик за сегодня</button>
+</main>
+
+<!-- ============ ЭКРАН 4: НАСТРОЙКИ ============ -->
+<main id="screen-settings" class="screen">
+    <div class="screen-header">
+        <h1>⚙️ Настройки</h1>
+        <p>Отладка и управление (для тестирования без Android)</p>
+    </div>
+
+    <div class="settings-group">
+        <h3>Диагностика</h3>
+        <div class="diag-row"><span>BASE_URL</span><code id="diag-base"></code></div>
+        <div class="diag-row"><span>Смещение времени</span><code id="diag-offset"></code></div>
+        <div class="diag-row"><span>Текущее серверное время</span><code id="diag-now"></code></div>
+        <div class="diag-row"><span>Геопозиция</span><code id="diag-geo"></code></div>
+        <div class="diag-row"><span>Загружено тестов</span><code id="diag-tests"></code></div>
+        <div class="diag-row"><span>Загружено сайтов</span><code id="diag-sites"></code></div>
+    </div>
+
+    <div class="settings-group">
+        <h3>Отметить тест сданным</h3>
+        <p class="hint">В Android это делается автоматически. Здесь — для отладки.</p>
+        <div id="mark-tests-list" class="mark-tests-list"></div>
+    </div>
+
+    <div class="settings-group">
+        <h3>Опасная зона</h3>
+        <button id="reset-tests-btn" class="btn btn-secondary btn-full">Сбросить все отметки тестов</button>
+        <button id="reset-all-btn" class="btn btn-danger btn-full">Полный сброс (localStorage)</button>
+    </div>
+</main>
+
+<!-- ============ ЭКРАН 5: ТЕСТ ============ -->
+<div id="screen-quiz" class="screen screen-full">
+    <header class="quiz-header">
+        <button id="back-btn" class="back-btn">← Назад</button>
+        <h1 id="quiz-title"></h1>
+        <p id="test-description"></p>
+    </header>
+
+    <main id="quiz-container"></main>
+
+    <div class="actions">
+        <button id="check-btn">Проверить ответы</button>
+        <button id="reset-btn" style="display:none;">Пройти заново</button>
+    </div>
+
+    <div id="result-container" class="hidden">
+        <h2>Результат</h2>
+        <div id="score-display"></div>
+        <div id="detailed-results"></div>
+    </div>
+</div>
+
+<!-- ============ МОДАЛКИ ============ -->
+<div id="modal-root"></div>
+
+<!-- ============ ТОСТЫ ============ -->
+<div id="toast-root"></div>
+
+<script src="registry.js"></script>
+<script src="app.js"></script>
+
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then(() => console.log('✅ SW зарегистрирован'))
+                .catch(err => console.error('❌ SW:', err));
+        });
+    }
+</script>
+</body>
+</html>

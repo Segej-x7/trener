@@ -1,0 +1,22 @@
+{
+  "id": "html-forms-frames",
+  "category": "html",
+  "title": "HTML: Формы и фреймы",
+  "description": "Теги для форм, ввода и фреймов.",
+  "questions": [
+    { "id": 1, "type": "single", "question": "Какой тег создаёт форму?", "options": ["<input>", "<form>", "<fieldset>", "<shape>"], "correct": [1], "explanation": "<form>." },
+    { "id": 2, "type": "single", "question": "Какой тег создаёт элемент ввода?", "options": ["<input>", "<field>", "<entry>", "<text>"], "correct": [0], "explanation": "<input>." },
+    { "id": 3, "type": "single", "question": "Какой тег создаёт многострочное поле?", "options": ["<input>", "<text>", "<textarea>", "<multiline>"], "correct": [2], "explanation": "<textarea>." },
+    { "id": 4, "type": "single", "question": "Какой тег создаёт кнопку?", "options": ["<btn>", "<button>", "<click>", "<press>"], "correct": [1], "explanation": "<button>." },
+    { "id": 5, "type": "single", "question": "Какой тег создаёт выпадающий список?", "options": ["<dropdown>", "<select>", "<list>", "<combo>"], "correct": [1], "explanation": "<select>." },
+    { "id": 6, "type": "single", "question": "Какой тег группирует пункты списка?", "options": ["<group>", "<optgroup>", "<fieldset>", "<section>"], "correct": [1], "explanation": "<optgroup>." },
+    { "id": 7, "type": "single", "question": "Какой тег задаёт пункт списка?", "options": ["<item>", "<option>", "<li>", "<value>"], "correct": [1], "explanation": "<option>." },
+    { "id": 8, "type": "single", "question": "Какой тег создаёт метку для input?", "options": ["<label>", "<caption>", "<text>", "<title>"], "correct": [0], "explanation": "<label>." },
+    { "id": 9, "type": "single", "question": "Какой тег группирует элементы формы?", "options": ["<group>", "<fieldset>", "<section>", "<formgroup>"], "correct": [1], "explanation": "<fieldset>." },
+    { "id": 10, "type": "single", "question": "Какой тег задаёт заголовок fieldset?", "options": ["<title>", "<caption>", "<legend>", "<header>"], "correct": [2], "explanation": "<legend>." },
+    { "id": 11, "type": "single", "question": "Какой тег задаёт список подсказок?", "options": ["<datalist>", "<options>", "<suggestions>", "<autocomplete>"], "correct": [0], "explanation": "<datalist>." },
+    { "id": 12, "type": "single", "question": "Какой тег определяет результат вычисления?", "options": ["<result>", "<output>", "<calc>", "<value>"], "correct": [1], "explanation": "<output>." },
+    { "id": 13, "type": "single", "question": "Какой тег встраивает внешнюю страницу?", "options": ["<frame>", "<iframe>", "<embed>", "<object>"], "correct": [1], "explanation": "<iframe>." },
+    { "id": 14, "type": "multiple", "question": "Какие теги фреймов устарели в HTML5?", "options": ["<frame>", "<frameset>", "<noframes>", "<iframe>"], "correct": [0, 1, 2], "explanation": "Устарели: frame, frameset, noframes." }
+  ]
+}

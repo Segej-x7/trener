@@ -1,0 +1,9 @@
+{
+  "id": "js-functions",
+  "category": "js",
+  "title": "JS: Функции",
+  "description": "Функции и стрелочный синтаксис.",
+  "questions": [
+    { "id": 1, "type": "single", "question": "Как выглядит стрелочная функция?", "options": ["function() {}", "() => {}", "=> () {}", "func() {}"], "correct": [1], "explanation": "Стрелочная функция: (args) => { body }" }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "id": "html-basics",
+  "category": "html",
+  "title": "HTML: Основы документа",
+  "description": "Базовые теги структуры HTML-документа.",
+  "questions": [
+    { "id": 1, "type": "single", "question": "Какой тег определяет тип документа?", "options": ["<html>", "<!DOCTYPE>", "<head>", "<meta>"], "correct": [1], "explanation": "<!DOCTYPE> сообщает браузеру версию HTML." },
+    { "id": 2, "type": "single", "question": "Какой тег является корневым элементом HTML-документа?", "options": ["<body>", "<html>", "<head>", "<root>"], "correct": [1], "explanation": "<html> — корневой элемент." },
+    { "id": 3, "type": "single", "question": "Какой тег содержит служебную информацию о документе?", "options": ["<body>", "<head>", "<meta>", "<info>"], "correct": [1], "explanation": "<head> содержит метаданные." },
+    { "id": 4, "type": "single", "question": "Какой тег задаёт название документа?", "options": ["<h1>", "<title>", "<name>", "<caption>"], "correct": [1], "explanation": "<title> задаёт заголовок вкладки." },
+    { "id": 5, "type": "single", "question": "Какой тег содержит видимое содержимое страницы?", "options": ["<head>", "<body>", "<main>", "<content>"], "correct": [1], "explanation": "<body> — тело документа." },
+    { "id": 6, "type": "multiple", "question": "Какие теги являются заголовками?", "options": ["<h1>", "<h3>", "<h6>", "<head>"], "correct": [0, 1, 2], "explanation": "Заголовки — <h1>…<h6>." },
+    { "id": 7, "type": "single", "question": "Какой тег создаёт параграф?", "options": ["<par>", "<p>", "<text>", "<paragraph>"], "correct": [1], "explanation": "<p> — paragraph." },
+    { "id": 8, "type": "single", "question": "Какой тег вставляет разрыв строки?", "options": ["<br>", "<hr>", "<lb>", "<break>"], "correct": [0], "explanation": "<br> — перенос строки." },
+    { "id": 9, "type": "single", "question": "Какой тег создаёт горизонтальную линию?", "options": ["<br>", "<line>", "<hr>", "<separator>"], "correct": [2], "explanation": "<hr> — horizontal rule." },
+    { "id": 10, "type": "single", "question": "Как записывается комментарий в HTML?", "options": ["// ...", "/* ... */", "<!-- ... -->", "# ..."], "correct": [2], "explanation": "<!-- ... -->." }
+  ]
+}

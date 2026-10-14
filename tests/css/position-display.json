@@ -1,0 +1,30 @@
+{
+  "id": "css-position-display",
+  "category": "css",
+  "title": "CSS: Позиционирование и display",
+  "description": "position, display, z-index, float, overflow.",
+  "questions": [
+    { "id": 1, "type": "single", "question": "Какое свойство задаёт способ отображения?", "options": ["visibility", "display", "show", "position"], "correct": [1], "explanation": "display." },
+    { "id": 2, "type": "single", "question": "Какое свойство задаёт тип позиционирования?", "options": ["position", "place", "location", "layout"], "correct": [0], "explanation": "position." },
+    { "id": 3, "type": "single", "question": "Какое свойство задаёт смещение сверху?", "options": ["top", "up", "y", "vertical-top"], "correct": [0], "explanation": "top." },
+    { "id": 4, "type": "single", "question": "Какое свойство задаёт смещение слева?", "options": ["left", "start", "x", "horizontal-left"], "correct": [0], "explanation": "left." },
+    { "id": 5, "type": "single", "question": "Какое свойство задаёт порядок по оси Z?", "options": ["z-index", "order", "layer", "stack"], "correct": [0], "explanation": "z-index." },
+    { "id": 6, "type": "single", "question": "Какое свойство делает элемент плавающим?", "options": ["float", "flow", "position", "swim"], "correct": [0], "explanation": "float." },
+    { "id": 7, "type": "single", "question": "Какое свойство отменяет обтекание?", "options": ["clear", "reset", "float-none", "stop"], "correct": [0], "explanation": "clear." },
+    { "id": 8, "type": "single", "question": "Какое свойство управляет переполнением?", "options": ["overflow", "spill", "clip", "hidden"], "correct": [0], "explanation": "overflow." },
+    { "id": 9, "type": "single", "question": "Какое свойство задаёт переполнение по X?", "options": ["overflow-x", "overflow-horizontal", "overflow-left", "overflow"], "correct": [0], "explanation": "overflow-x." },
+    { "id": 10, "type": "single", "question": "Какое свойство обрезает абсолютно позиционированный элемент?", "options": ["clip", "cut", "crop", "trim"], "correct": [0], "explanation": "clip." },
+    { "id": 11, "type": "single", "question": "Какое свойство создаёт новый stacking context?", "options": ["isolation", "z-index", "stack", "layer"], "correct": [0], "explanation": "isolation." },
+    { "id": 12, "type": "single", "question": "Какое свойство управляет реакцией на клики?", "options": ["pointer-events", "cursor", "click", "events"], "correct": [0], "explanation": "pointer-events." },
+    { "id": 13, "type": "single", "question": "Какое свойство задаёт вид курсора?", "options": ["cursor", "pointer", "mouse", "hover"], "correct": [0], "explanation": "cursor." },
+    { "id": 14, "type": "single", "question": "Какое свойство применяет трансформации?", "options": ["transform", "translate", "convert", "warp"], "correct": [0], "explanation": "transform." },
+    { "id": 15, "type": "single", "question": "Какое свойство задаёт точку отсчёта transform?", "options": ["transform-origin", "transform-point", "origin", "pivot"], "correct": [0], "explanation": "transform-origin." },
+    { "id": 16, "type": "single", "question": "Какое свойство задаёт 3D-режим?", "options": ["transform-style", "transform-3d", "3d-style", "perspective-style"], "correct": [0], "explanation": "transform-style." },
+    { "id": 17, "type": "single", "question": "Какое свойство задаёт перспективу?", "options": ["perspective", "depth", "3d", "view"], "correct": [0], "explanation": "perspective." },
+    { "id": 18, "type": "single", "question": "Какое свойство управляет задней гранью?", "options": ["backface-visibility", "backface", "reverse-visibility", "flip"], "correct": [0], "explanation": "backface-visibility." },
+    { "id": 19, "type": "single", "question": "Какое свойство смешивает содержимое с фоном?", "options": ["mix-blend-mode", "background-blend-mode", "blend", "overlay"], "correct": [0], "explanation": "mix-blend-mode." },
+    { "id": 20, "type": "single", "question": "Какое свойство вписывает img/video в бокс?", "options": ["object-fit", "fit", "media-fit", "content-fit"], "correct": [0], "explanation": "object-fit." },
+    { "id": 21, "type": "single", "question": "Какое свойство задаёт позицию объекта?", "options": ["object-position", "object-align", "media-position", "content-position"], "correct": [0], "explanation": "object-position." },
+    { "id": 22, "type": "single", "question": "Какое свойство применяет эффекты к элементу?", "options": ["filter", "effect", "blur", "style"], "correct": [0], "explanation": "filter." }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "id": "css-basics",
+  "category": "css",
+  "title": "CSS: Основы и цвет",
+  "description": "Базовые свойства: цвет, фон, прозрачность.",
+  "questions": [
+    { "id": 1, "type": "single", "question": "Какое свойство задаёт цвет текста?", "options": ["background-color", "color", "text-color", "font-color"], "correct": [1], "explanation": "color." },
+    { "id": 2, "type": "single", "question": "Какое свойство задаёт цвет фона?", "options": ["color", "background-color", "bg-color", "fill"], "correct": [1], "explanation": "background-color." },
+    { "id": 3, "type": "single", "question": "Какое свойство задаёт прозрачность?", "options": ["transparency", "opacity", "alpha", "visibility"], "correct": [1], "explanation": "opacity." },
+    { "id": 4, "type": "single", "question": "Какое свойство управляет видимостью?", "options": ["display", "opacity", "visibility", "show"], "correct": [2], "explanation": "visibility." },
+    { "id": 5, "type": "single", "question": "Какое свойство сбрасывает все CSS-свойства?", "options": ["reset", "all", "clear", "initial"], "correct": [1], "explanation": "all." },
+    { "id": 6, "type": "single", "question": "Какое свойство задаёт цвет акцента?", "options": ["accent-color", "highlight-color", "ui-color", "control-color"], "correct": [0], "explanation": "accent-color." },
+    { "id": 7, "type": "single", "question": "Какое свойство задаёт цвет каретки?", "options": ["cursor-color", "caret-color", "input-color", "text-cursor"], "correct": [1], "explanation": "caret-color." },
+    { "id": 8, "type": "single", "question": "Какое свойство задаёт режим наложения содержимого?", "options": ["mix-blend-mode", "background-blend-mode", "overlay", "opacity"], "correct": [0], "explanation": "mix-blend-mode." },
+    { "id": 9, "type": "single", "question": "Какое свойство позволяет менять размер элемента?", "options": ["resize", "scale", "size", "drag"], "correct": [0], "explanation": "resize." },
+    { "id": 10, "type": "single", "question": "Какое свойство задаёт ширину табуляции?", "options": ["tab-width", "tab-size", "indent-size", "tab"], "correct": [1], "explanation": "tab-size." }
+  ]
+}

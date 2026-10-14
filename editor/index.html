@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#3454b4">
+<title>Редактор правил доступа</title>
+<link rel="stylesheet" href="editor.css">
+</head>
+<body>
+
+<!-- ============================================ -->
+<!-- ЭКРАН БЛОКИРОВКИ (показывается вне расписания) -->
+<!-- ============================================ -->
+<div id="lock-screen" class="lock-screen hidden">
+    <div class="lock-card">
+        <div class="lock-icon">🔒</div>
+        <h1>Редактор закрыт</h1>
+        <p id="lock-message">Редактор доступен только с 22:00 до 23:00</p>
+
+        <div id="lock-details" class="lock-details"></div>
+
+        <div id="lock-override" class="lock-override hidden">
+            <input type="password" id="lock-password" placeholder="Пароль для входа" autocomplete="off">
+            <button id="lock-submit" class="btn btn-primary">Открыть</button>
+            <p id="lock-error" class="lock-error"></p>
+        </div>
+
+        <button id="lock-retry" class="btn btn-secondary">🔄 Проверить снова</button>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- РЕДАКТОР (скрыт до успешной проверки)         -->
+<!-- ============================================ -->
+<div id="editor-root" class="hidden">
+
+    <header class="editor-header">
+        <div class="editor-title">
+            <span class="editor-logo">⚙️</span>
+            <div>
+                <h1>Редактор правил</h1>
+                <p>Настройка сайтов, геоточек, расписаний, тестов</p>
+            </div>
+        </div>
+        <div class="editor-toolbar">
+            <button id="btn-import" class="btn btn-secondary">📥 Импорт</button>
+            <button id="btn-export" class="btn btn-primary">📤 Экспорт</button>
+            <button id="btn-preview" class="btn btn-secondary">👁 Предпросмотр</button>
+        </div>
+        <input type="file" id="file-import" accept=".json" multiple hidden>
+    </header>
+
+    <nav class="tabs-nav">
+        <button class="tab-btn active" data-tab="sites">🌐 Сайты</button>
+        <button class="tab-btn" data-tab="geopoints">📍 Геоточки</button>
+        <button class="tab-btn" data-tab="schedules">🕐 Расписания</button>
+        <button class="tab-btn" data-tab="testsets">📋 Наборы тестов</button>
+        <button class="tab-btn" data-tab="tests">📚 Тесты</button>
+        <button class="tab-btn" data-tab="password">🔒 Пароли</button>
+    </nav>
+
+    <main>
+        <section id="tab-sites"     class="tab-panel active"></section>
+        <section id="tab-geopoints" class="tab-panel"></section>
+        <section id="tab-schedules" class="tab-panel"></section>
+        <section id="tab-testsets"  class="tab-panel"></section>
+        <section id="tab-tests"     class="tab-panel"></section>
+        <section id="tab-password"  class="tab-panel"></section>
+    </main>
+
+    <div id="modal" class="modal hidden">
+        <div class="modal-content">
+            <button class="modal-close" id="modal-close">✕</button>
+            <h2 id="modal-title"></h2>
+            <form id="modal-form"></form>
+        </div>
+    </div>
+
+    <div id="preview" class="modal hidden">
+        <div class="modal-content wide">
+            <button class="modal-close" id="preview-close">✕</button>
+            <h2>Предпросмотр JSON</h2>
+            <div id="preview-body"></div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Тосты — вне editor-root, чтобы показываться и на экране блокировки -->
+<div id="toast-root"></div>
+
+<script src="editor.js"></script>
+</body>
+</html>

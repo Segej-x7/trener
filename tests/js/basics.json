@@ -1,0 +1,9 @@
+{
+  "id": "js-basics",
+  "category": "js",
+  "title": "JS: Основы",
+  "description": "Базовые знания JavaScript.",
+  "questions": [
+    { "id": 1, "type": "single", "question": "Какой оператор используется для строгого сравнения?", "options": ["==", "===", "=", "!="], "correct": [1], "explanation": "=== сравнивает и значение, и тип." }
+  ]
+}

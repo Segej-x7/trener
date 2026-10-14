@@ -1,0 +1,24 @@
+{
+  "id": "css-animations",
+  "category": "css",
+  "title": "CSS: Анимации и переходы",
+  "description": "transition, animation и @keyframes.",
+  "questions": [
+    { "id": 1, "type": "single", "question": "Какое свойство задаёт плавный переход?", "options": ["transition", "animation", "transform", "ease"], "correct": [0], "explanation": "transition." },
+    { "id": 2, "type": "single", "question": "Какое свойство задаёт, к чему применяется transition?", "options": ["transition-property", "transition-name", "transition-target", "transition-effect"], "correct": [0], "explanation": "transition-property." },
+    { "id": 3, "type": "single", "question": "Какое свойство задаёт длительность transition?", "options": ["transition-duration", "transition-time", "transition-delay", "transition-speed"], "correct": [0], "explanation": "transition-duration." },
+    { "id": 4, "type": "single", "question": "Какое свойство задаёт задержку?", "options": ["transition-delay", "transition-duration", "transition-time", "transition-wait"], "correct": [0], "explanation": "transition-delay." },
+    { "id": 5, "type": "single", "question": "Какое свойство задаёт кривую скорости?", "options": ["transition-timing-function", "transition-ease", "transition-curve", "transition-speed"], "correct": [0], "explanation": "transition-timing-function." },
+    { "id": 6, "type": "single", "question": "Сокращённое свойство для transition?", "options": ["transition", "animate", "effect", "motion"], "correct": [0], "explanation": "transition." },
+    { "id": 7, "type": "single", "question": "Какое свойство задаёт имя @keyframes?", "options": ["animation-name", "animation-id", "animation-key", "animation-ref"], "correct": [0], "explanation": "animation-name." },
+    { "id": 8, "type": "single", "question": "Какое свойство задаёт длительность анимации?", "options": ["animation-duration", "animation-time", "animation-delay", "animation-speed"], "correct": [0], "explanation": "animation-duration." },
+    { "id": 9, "type": "single", "question": "Какое свойство задаёт задержку анимации?", "options": ["animation-delay", "animation-duration", "animation-time", "animation-wait"], "correct": [0], "explanation": "animation-delay." },
+    { "id": 10, "type": "single", "question": "Какое свойство задаёт кол-во повторений?", "options": ["animation-iteration-count", "animation-repeat", "animation-loop", "animation-times"], "correct": [0], "explanation": "animation-iteration-count." },
+    { "id": 11, "type": "single", "question": "Какое свойство задаёт направление?", "options": ["animation-direction", "animation-play", "animation-reverse", "animation-flow"], "correct": [0], "explanation": "animation-direction." },
+    { "id": 12, "type": "single", "question": "Какое свойство запускает/пауза?", "options": ["animation-play-state", "animation-state", "animation-run", "animation-pause"], "correct": [0], "explanation": "animation-play-state." },
+    { "id": 13, "type": "single", "question": "Какое свойство задаёт кривую скорости?", "options": ["animation-timing-function", "animation-ease", "animation-curve", "animation-speed"], "correct": [0], "explanation": "animation-timing-function." },
+    { "id": 14, "type": "single", "question": "Какое свойство задаёт стиль до/после?", "options": ["animation-fill-mode", "animation-style", "animation-state", "animation-final"], "correct": [0], "explanation": "animation-fill-mode." },
+    { "id": 15, "type": "single", "question": "Сокращённое свойство для animation?", "options": ["animation", "motion", "keyframe", "effect"], "correct": [0], "explanation": "animation." },
+    { "id": 16, "type": "single", "question": "Какое @-правило задаёт анимацию?", "options": ["@keyframes", "@animation", "@keyframe", "@motion"], "correct": [0], "explanation": "@keyframes." }
+  ]
+}

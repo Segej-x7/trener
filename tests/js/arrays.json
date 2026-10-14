@@ -1,0 +1,9 @@
+{
+  "id": "js-arrays",
+  "category": "js",
+  "title": "JS: Массивы",
+  "description": "Методы массивов.",
+  "questions": [
+    { "id": 1, "type": "single", "question": "Какой метод добавляет элемент в конец массива?", "options": ["push", "pop", "shift", "unshift"], "correct": [0], "explanation": "push добавляет в конец." }
+  ]
+}

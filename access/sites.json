@@ -1,0 +1,143 @@
+{
+  "sites": [
+    {
+      "id": "example",
+      "url": "https://example.com",
+      "name": "Example.com",
+      "icon": "🌐",
+      "limitMs": 300000,
+      "requiredTestIds": ["html-basics"],
+      "geofence": null,
+      "schedule": null,
+      "intervalAccess": null,
+      "password": null
+    },
+
+    {
+      "id": "wikipedia",
+      "url": "https://wikipedia.org",
+      "name": "Wikipedia",
+      "icon": "📚",
+      "limitMs": 600000,
+      "requiredTestIds": ["html-basics", "html-formatting"],
+      "geofence": "red-square",
+      "schedule": "weekdays-9-18",
+
+      "intervalAccess": {
+        "enabled": true,
+        "intervalMs": 7200000,
+        "windowMs": 900000,
+        "anchorAt": "2026-01-01T00:00:00+03:00",
+        "timezone": "Europe/Moscow"
+      },
+
+      "password": {
+        "enabled": true,
+        "mode": "requireAlways",
+        "realHash":   "ВСТАВЬТЕ_СЮДА_SHA256_ОТ_ОСНОВНОГО_ПАРОЛЯ",
+        "duressHash": "ВСТАВЬТЕ_СЮДА_SHA256_ОТ_ПОДСТАВНОГО_ПАРОЛЯ",
+        "decoyUrl": "https://example.com",
+        "decoyName": "Example.com",
+        "maxAttempts": 3,
+        "blockDurationMs": 1800000,
+        "hint": "Связано с восходом"
+      }
+    },
+
+    {
+      "id": "mdn",
+      "url": "https://developer.mozilla.org",
+      "name": "MDN Web Docs",
+      "icon": "💻",
+      "limitMs": 900000,
+      "requiredTestIds": ["html-basics", "css-basics", "js-basics"],
+      "geofence": "spb-center",
+      "schedule": "everyday-8-22",
+
+      "intervalAccess": {
+        "enabled": true,
+        "intervalMs": 10800000,
+        "windowMs": 1200000,
+        "anchorAt": "2026-01-01T00:00:00+03:00",
+        "timezone": "Europe/Moscow"
+      },
+
+      "password": {
+        "enabled": true,
+        "mode": "requireOnce",
+        "realHash":   "ВСТАВЬТЕ_СЮДА_SHA256_ОТ_ОСНОВНОГО_ПАРОЛЯ",
+        "duressHash": "ВСТАВЬТЕ_СЮДА_SHA256_ОТ_ПОДСТАВНОГО_ПАРОЛЯ",
+        "decoyUrl": "https://ru.wikipedia.org/wiki/Погода",
+        "decoyName": "Погода",
+        "maxAttempts": 5,
+        "blockDurationMs": 3600000,
+        "hint": null
+      }
+    },
+
+    {
+      "id": "github",
+      "url": "https://github.com",
+      "name": "GitHub",
+      "icon": "🐙",
+      "limitMs": 1200000,
+      "requiredTestIds": ["html-basics", "css-basics"],
+      "geofence": "home",
+      "schedule": null,
+
+      "intervalAccess": {
+        "enabled": true,
+        "intervalMs": 14400000,
+        "windowMs": 1800000,
+        "anchorAt": "2026-01-01T00:00:00+03:00",
+        "timezone": "Europe/Moscow"
+      },
+
+      "password": null
+    },
+
+    {
+      "id": "stackoverflow",
+      "url": "https://stackoverflow.com",
+      "name": "Stack Overflow",
+      "icon": "📖",
+      "limitMs": 900000,
+      "requiredTestIds": ["html-basics", "css-basics", "js-basics"],
+      "geofence": null,
+      "schedule": "weekdays-9-18",
+
+      "intervalAccess": null,
+      "password": null
+    },
+
+    {
+      "id": "habr",
+      "url": "https://habr.com",
+      "name": "Habr",
+      "icon": "📰",
+      "limitMs": 900000,
+      "requiredTestIds": ["html-basics"],
+      "geofence": "office",
+      "schedule": "weekdays-9-18",
+
+      "intervalAccess": {
+        "enabled": true,
+        "intervalMs": 3600000,
+        "windowMs": 600000,
+        "anchorAt": "2026-01-01T00:00:00+03:00",
+        "timezone": "Europe/Moscow"
+      },
+
+      "password": null
+    }
+  ],
+
+  "globalBlockDurationMs": 7200000,
+  "allowParallelOpen": false,
+
+  "geolocation": {
+    "timeoutMs": 10000,
+    "maximumAge": 60000,
+    "enableHighAccuracy": true
+  }
+}

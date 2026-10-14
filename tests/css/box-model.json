@@ -1,0 +1,28 @@
+{
+  "id": "css-box-model",
+  "category": "css",
+  "title": "CSS: Блочная модель",
+  "description": "Отступы, границы, размеры.",
+  "questions": [
+    { "id": 1, "type": "single", "question": "Какое свойство задаёт внешний отступ?", "options": ["padding", "margin", "border", "gap"], "correct": [1], "explanation": "margin." },
+    { "id": 2, "type": "single", "question": "Какое свойство задаёт внутренний отступ?", "options": ["margin", "padding", "border", "indent"], "correct": [1], "explanation": "padding." },
+    { "id": 3, "type": "single", "question": "Какое свойство задаёт ширину?", "options": ["size", "width", "w", "length"], "correct": [1], "explanation": "width." },
+    { "id": 4, "type": "single", "question": "Какое свойство задаёт высоту?", "options": ["height", "h", "size", "length"], "correct": [0], "explanation": "height." },
+    { "id": 5, "type": "single", "question": "Какое свойство задаёт макс. ширину?", "options": ["width-max", "max-width", "limit-width", "width-limit"], "correct": [1], "explanation": "max-width." },
+    { "id": 6, "type": "single", "question": "Какое свойство задаёт мин. высоту?", "options": ["height-min", "min-height", "limit-height", "height-limit"], "correct": [1], "explanation": "min-height." },
+    { "id": 7, "type": "single", "question": "Какое свойство определяет box-sizing?", "options": ["box-model", "box-sizing", "box-style", "border-box"], "correct": [1], "explanation": "box-sizing." },
+    { "id": 8, "type": "single", "question": "Какое свойство задаёт ширину границ?", "options": ["border-width", "border-size", "border-thickness", "border"], "correct": [0], "explanation": "border-width." },
+    { "id": 9, "type": "single", "question": "Какое свойство задаёт стиль границ?", "options": ["border-style", "border-type", "border-kind", "border"], "correct": [0], "explanation": "border-style." },
+    { "id": 10, "type": "single", "question": "Какое свойство задаёт радиус скругления?", "options": ["corner-radius", "border-radius", "round", "border-corner"], "correct": [1], "explanation": "border-radius." },
+    { "id": 11, "type": "single", "question": "Как задать радиус левого верхнего угла?", "options": ["border-top-left-radius", "border-radius-top-left", "corner-top-left", "radius-tl"], "correct": [0], "explanation": "border-top-left-radius." },
+    { "id": 12, "type": "single", "question": "Какое свойство добавляет тень к блоку?", "options": ["text-shadow", "box-shadow", "shadow", "drop-shadow"], "correct": [1], "explanation": "box-shadow." },
+    { "id": 13, "type": "single", "question": "Какое свойство задаёт цвет верхней границы?", "options": ["border-top-color", "border-color-top", "top-border-color", "color-top"], "correct": [0], "explanation": "border-top-color." },
+    { "id": 14, "type": "single", "question": "Какое свойство задаёт расстояние между ячейками?", "options": ["border-spacing", "cell-spacing", "table-gap", "border-gap"], "correct": [0], "explanation": "border-spacing." },
+    { "id": 15, "type": "single", "question": "Какое свойство сворачивает границы таблицы?", "options": ["border-collapse", "border-merge", "table-collapse", "border-join"], "correct": [0], "explanation": "border-collapse." },
+    { "id": 16, "type": "single", "question": "Какое свойство задаёт алгоритм компоновки таблицы?", "options": ["table-layout", "table-style", "layout", "table-mode"], "correct": [0], "explanation": "table-layout." },
+    { "id": 17, "type": "single", "question": "Какое свойство задаёт положение подписи таблицы?", "options": ["caption-side", "caption-position", "table-caption", "caption"], "correct": [0], "explanation": "caption-side." },
+    { "id": 18, "type": "single", "question": "Какое свойство отображает границы пустых ячеек?", "options": ["empty-cells", "empty-border", "show-empty", "cell-border"], "correct": [0], "explanation": "empty-cells." },
+    { "id": 19, "type": "multiple", "question": "Какие свойства входят в border?", "options": ["border-width", "border-style", "border-color", "border-radius"], "correct": [0, 1, 2], "explanation": "border = width + style + color." },
+    { "id": 20, "type": "single", "question": "Какое свойство управляет разрывом после элемента?", "options": ["break-after", "page-break-after", "after-break", "break"], "correct": [1], "explanation": "page-break-after." }
+  ]
+}

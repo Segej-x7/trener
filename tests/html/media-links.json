@@ -1,0 +1,30 @@
+{
+  "id": "html-media-links",
+  "category": "html",
+  "title": "HTML: Медиа, ссылки, списки",
+  "description": "Изображения, аудио, видео, ссылки, списки.",
+  "questions": [
+    { "id": 1, "type": "single", "question": "Какой тег вставляет изображение?", "options": ["<image>", "<img>", "<pic>", "<figure>"], "correct": [1], "explanation": "<img>." },
+    { "id": 2, "type": "single", "question": "Какой тег создаёт карту изображения?", "options": ["<area>", "<map>", "<imagemap>", "<coords>"], "correct": [1], "explanation": "<map>." },
+    { "id": 3, "type": "single", "question": "Какой тег задаёт область карты?", "options": ["<area>", "<map>", "<zone>", "<region>"], "correct": [0], "explanation": "<area>." },
+    { "id": 4, "type": "single", "question": "Какой тег для рисования через JS?", "options": ["<svg>", "<canvas>", "<draw>", "<paint>"], "correct": [1], "explanation": "<canvas>." },
+    { "id": 5, "type": "single", "question": "Какой тег задаёт подпись к figure?", "options": ["<caption>", "<figcaption>", "<label>", "<legend>"], "correct": [1], "explanation": "<figcaption>." },
+    { "id": 6, "type": "single", "question": "Какой тег задаёт автономное содержимое?", "options": ["<figure>", "<aside>", "<image>", "<caption>"], "correct": [0], "explanation": "<figure>." },
+    { "id": 7, "type": "single", "question": "Какой тег для адаптивных картинок?", "options": ["<picture>", "<img>", "<source>", "<media>"], "correct": [0], "explanation": "<picture>." },
+    { "id": 8, "type": "single", "question": "Какой тег для векторной графики?", "options": ["<canvas>", "<svg>", "<vector>", "<graphic>"], "correct": [1], "explanation": "<svg>." },
+    { "id": 9, "type": "single", "question": "Какой тег вставляет звук?", "options": ["<sound>", "<audio>", "<music>", "<media>"], "correct": [1], "explanation": "<audio>." },
+    { "id": 10, "type": "single", "question": "Какой тег задаёт источник медиа?", "options": ["<src>", "<source>", "<media>", "<track>"], "correct": [1], "explanation": "<source>." },
+    { "id": 11, "type": "single", "question": "Какой тег задаёт субтитры?", "options": ["<subtitle>", "<track>", "<caption>", "<text>"], "correct": [1], "explanation": "<track>." },
+    { "id": 12, "type": "single", "question": "Какой тег вставляет видео?", "options": ["<movie>", "<video>", "<media>", "<player>"], "correct": [1], "explanation": "<video>." },
+    { "id": 13, "type": "single", "question": "Какой тег создаёт гиперссылку?", "options": ["<link>", "<a>", "<href>", "<url>"], "correct": [1], "explanation": "<a>." },
+    { "id": 14, "type": "single", "question": "Какой тег подключает внешний ресурс?", "options": ["<a>", "<link>", "<style>", "<src>"], "correct": [1], "explanation": "<link>." },
+    { "id": 15, "type": "single", "question": "Какой тег задаёт блок навигации?", "options": ["<nav>", "<menu>", "<links>", "<navbar>"], "correct": [0], "explanation": "<nav>." },
+    { "id": 16, "type": "single", "question": "Какой тег создаёт маркированный список?", "options": ["<ol>", "<ul>", "<dl>", "<list>"], "correct": [1], "explanation": "<ul>." },
+    { "id": 17, "type": "single", "question": "Какой тег создаёт нумерованный список?", "options": ["<ul>", "<ol>", "<nl>", "<dl>"], "correct": [1], "explanation": "<ol>." },
+    { "id": 18, "type": "single", "question": "Какой тег задаёт элемент списка?", "options": ["<li>", "<item>", "<el>", "<point>"], "correct": [0], "explanation": "<li>." },
+    { "id": 19, "type": "single", "question": "Какой тег создаёт список описаний?", "options": ["<ul>", "<ol>", "<dl>", "<desc>"], "correct": [2], "explanation": "<dl>." },
+    { "id": 20, "type": "single", "question": "Какой тег задаёт термин в <dl>?", "options": ["<dd>", "<dt>", "<li>", "<term>"], "correct": [1], "explanation": "<dt>." },
+    { "id": 21, "type": "single", "question": "Какой тег задаёт описание термина?", "options": ["<dt>", "<dd>", "<li>", "<desc>"], "correct": [1], "explanation": "<dd>." },
+    { "id": 22, "type": "single", "question": "Какой тег задаёт меню команд?", "options": ["<menu>", "<nav>", "<list>", "<commands>"], "correct": [0], "explanation": "<menu>." }
+  ]
+}

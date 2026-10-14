@@ -1,0 +1,53 @@
+{
+  "testSets": [
+    {
+      "id": "html-basic-set",
+      "label": "HTML: базовый набор",
+      "testIds": ["html-basics", "html-formatting"]
+    },
+    {
+      "id": "html-full",
+      "label": "HTML: полный",
+      "testIds": [
+        "html-basics",
+        "html-formatting",
+        "html-forms-frames",
+        "html-media-links",
+        "html-semantics-tables"
+      ]
+    },
+    {
+      "id": "html-css-full",
+      "label": "HTML + CSS: полный",
+      "testIds": [
+        "html-basics",
+        "html-formatting",
+        "html-forms-frames",
+        "html-media-links",
+        "html-semantics-tables",
+        "css-basics",
+        "css-text-font",
+        "css-box-model",
+        "css-position-display",
+        "css-flex-grid",
+        "css-animations"
+      ]
+    },
+    {
+      "id": "js-only",
+      "label": "Только JS",
+      "testIds": ["js-basics", "js-arrays", "js-functions"]
+    },
+    {
+      "id": "frontend-full",
+      "label": "Frontend: полный",
+      "testIds": [
+        "html-basics", "html-formatting", "html-forms-frames",
+        "html-media-links", "html-semantics-tables",
+        "css-basics", "css-text-font", "css-box-model",
+        "css-position-display", "css-flex-grid", "css-animations",
+        "js-basics", "js-arrays", "js-functions"
+      ]
+    }
+  ]
+}

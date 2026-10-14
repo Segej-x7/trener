@@ -1,0 +1,47 @@
+{
+  "version": "1.2.0",
+  "appName": "Тренажёр HTML, CSS & JS",
+
+  "timeSource": {
+    "providers": [
+      {
+        "name": "Coinbase",
+        "url": "https://api.coinbase.com/v2/time",
+        "path": "data.epoch",
+        "multiplier": 1000
+      },
+      {
+        "name": "WorldTimeAPI",
+        "url": "https://worldtimeapi.org/api/ip",
+        "path": "unixtime",
+        "multiplier": 1000
+      }
+    ],
+    "resyncIntervalMs": 30000
+  },
+
+  "access": {
+    "sitesFile":       "access/sites.json",
+    "geopointsFile":   "access/geopoints.json",
+    "schedulesFile":   "access/schedules.json",
+    "testSetsFile":    "access/test-sets.json",
+    "blockDurationMs": 7200000
+  },
+
+  "tests": {
+    "indexFile": "tests/index.json"
+  },
+
+  "ui": {
+    "showTimeSource": true,
+    "blockOnTimeSyncFailure": false,
+    "language": "ru"
+  },
+
+  "geolocation": {
+    "timeoutMs": 10000,
+    "maximumAge": 60000,
+    "enableHighAccuracy": true,
+    "cachePositionMs": 30000
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "geopoints": [
+    {
+      "id": "red-square",
+      "label": "Красная площадь, Москва",
+      "lat": 55.751244,
+      "lon": 37.618423,
+      "radiusMeters": 200
+    },
+    {
+      "id": "spb-center",
+      "label": "Санкт-Петербург, центр",
+      "lat": 59.931059,
+      "lon": 30.360909,
+      "radiusMeters": 500
+    },
+    {
+      "id": "home",
+      "label": "Дом",
+      "lat": 55.700000,
+      "lon": 37.600000,
+      "radiusMeters": 100
+    },
+    {
+      "id": "office",
+      "label": "Офис",
+      "lat": 55.760000,
+      "lon": 37.640000,
+      "radiusMeters": 150
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "id": "css-flex-grid",
+  "category": "css",
+  "title": "CSS: Flexbox и Grid",
+  "description": "Флексбоксы и grid-контейнеры.",
+  "questions": [
+    { "id": 1, "type": "single", "question": "Как включить flex-контейнер?", "options": ["display: flex", "position: flex", "flex: on", "display: flexbox"], "correct": [0], "explanation": "display: flex." },
+    { "id": 2, "type": "single", "question": "Какое свойство задаёт направление главной оси?", "options": ["flex-direction", "flex-flow", "flex-order", "direction"], "correct": [0], "explanation": "flex-direction." },
+    { "id": 3, "type": "single", "question": "Какое свойство задаёт перенос?", "options": ["flex-wrap", "flex-flow", "wrap", "flex-break"], "correct": [0], "explanation": "flex-wrap." },
+    { "id": 4, "type": "single", "question": "Какое свойство объединяет direction + wrap?", "options": ["flex", "flex-flow", "flex-box", "flex-container"], "correct": [1], "explanation": "flex-flow." },
+    { "id": 5, "type": "single", "question": "Какое свойство выравнивает по главной оси?", "options": ["align-items", "justify-content", "align-content", "flex-align"], "correct": [1], "explanation": "justify-content." },
+    { "id": 6, "type": "single", "question": "Какое свойство выравнивает по поперечной оси?", "options": ["justify-content", "align-items", "align-content", "flex-align"], "correct": [1], "explanation": "align-items." },
+    { "id": 7, "type": "single", "question": "Какое свойство задаёт выравнивание между линиями?", "options": ["align-items", "justify-content", "align-content", "flex-lines"], "correct": [2], "explanation": "align-content." },
+    { "id": 8, "type": "single", "question": "Какое свойство выравнивает конкретный элемент?", "options": ["align-self", "align-item", "self-align", "flex-self"], "correct": [0], "explanation": "align-self." },
+    { "id": 9, "type": "single", "question": "Какое свойство задаёт порядок элемента?", "options": ["order", "flex-order", "index", "position"], "correct": [0], "explanation": "order." },
+    { "id": 10, "type": "single", "question": "Какое свойство задаёт рост элемента?", "options": ["flex-grow", "flex-shrink", "flex-basis", "flex-size"], "correct": [0], "explanation": "flex-grow." },
+    { "id": 11, "type": "single", "question": "Какое свойство задаёт сжатие?", "options": ["flex-grow", "flex-shrink", "flex-basis", "flex-size"], "correct": [1], "explanation": "flex-shrink." },
+    { "id": 12, "type": "single", "question": "Какое свойство задаёт начальный размер?", "options": ["flex-grow", "flex-shrink", "flex-basis", "flex-size"], "correct": [2], "explanation": "flex-basis." },
+    { "id": 13, "type": "single", "question": "Какое свойство объединяет grow+shrink+basis?", "options": ["flex", "flex-flow", "flex-all", "flex-container"], "correct": [0], "explanation": "flex." },
+    { "id": 14, "type": "single", "question": "Как включить grid-контейнер?", "options": ["display: grid", "grid: on", "position: grid", "display: gridbox"], "correct": [0], "explanation": "display: grid." },
+    { "id": 15, "type": "single", "question": "Какое свойство задаёт столбцы?", "options": ["grid-template-columns", "grid-columns", "grid-cols", "grid-column"], "correct": [0], "explanation": "grid-template-columns." },
+    { "id": 16, "type": "single", "question": "Какое свойство задаёт строки?", "options": ["grid-template-rows", "grid-rows", "grid-row", "grid-template"], "correct": [0], "explanation": "grid-template-rows." },
+    { "id": 17, "type": "single", "question": "Какое свойство задаёт области?", "options": ["grid-template-areas", "grid-areas", "grid-names", "grid-template"], "correct": [0], "explanation": "grid-template-areas." },
+    { "id": 18, "type": "single", "question": "Какое свойство задаёт зазор?", "options": ["gap", "grid-gap", "grid-column-gap", "grid-spacing"], "correct": [0], "explanation": "gap." },
+    { "id": 19, "type": "single", "question": "Какое свойство задаёт авторазмещение?", "options": ["grid-auto-flow", "grid-flow", "grid-auto", "grid-place"], "correct": [0], "explanation": "grid-auto-flow." },
+    { "id": 20, "type": "single", "question": "Какое свойство задаёт область элемента?", "options": ["grid-area", "grid-position", "grid-place", "grid-item"], "correct": [0], "explanation": "grid-area." },
+    { "id": 21, "type": "single", "question": "Какое свойство задаёт позицию по столбцу?", "options": ["grid-column", "grid-column-start", "grid-column-end", "grid-col"], "correct": [0], "explanation": "grid-column." },
+    { "id": 22, "type": "single", "question": "Какое свойство задаёт позицию по строке?", "options": ["grid-row", "grid-row-start", "grid-row-end", "grid-line"], "correct": [0], "explanation": "grid-row." },
+    { "id": 23, "type": "single", "question": "Самое мощное сокращение для grid-контейнера?", "options": ["grid", "grid-template", "grid-all", "grid-flow"], "correct": [0], "explanation": "grid." }
+  ]
+}
