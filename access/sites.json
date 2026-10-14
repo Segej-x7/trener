@@ -2,8 +2,8 @@
   "sites": [
     {
       "id": "example",
-      "url": "https://example.com",
-      "name": "Example.com",
+      "url": "https://www.list-org.com",
+      "name": "ЕГРН",
       "icon": "🌐",
       "limitMs": 300000,
       "requiredTestIds": ["html-basics"],
