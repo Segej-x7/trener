@@ -32,13 +32,15 @@ const state = {
     serverSynced: false,
     lastPosition: null,
     lastPositionPromise: null,
-    sessionUnlocked: new Set(), // для requireOnce
-    activeSiteTimer: null,
+    sessionUnlocked: new Set(),
     activeSiteId: null,
     activeSiteStartedAt: 0
 };
 
 const now = () => Date.now() + state.serverOffset;
+
+// Максимальное время, в течение которого доверяем сохранённому смещению (мс)
+const TIME_TRUST_MAX_AGE = 6 * 60 * 60 * 1000; // 6 часов
 
 // ============================================
 // DOM-хелперы
@@ -219,16 +221,13 @@ function checkIntervalAccess(site) {
     const intervalMs = ia.intervalMs;
     const windowMs = ia.windowMs;
 
-    // Валидация
     if (!intervalMs || !windowMs || intervalMs <= 0 || windowMs <= 0) {
         return { ok: true, kind: 'invalid' };
     }
     if (windowMs >= intervalMs) {
-        // Окно больше цикла — фактически всегда открыто
         return { ok: true, kind: 'always' };
     }
 
-    // Точка отсчёта
     const anchorMs = ia.anchorAt ? Date.parse(ia.anchorAt) : 0;
     if (!isFinite(anchorMs)) {
         return { ok: true, kind: 'invalid' };
@@ -271,24 +270,136 @@ function checkIntervalAccess(site) {
     };
 }
 
-// Лимит времени (дневной)
+// ============================================
+// ДОВЕРИЕ ВРЕМЕНИ
+// ============================================
+function isTimeTrusted() {
+    if (state.serverSynced) return true;
+    const savedAt = parseInt(localStorage.getItem('serverSyncAt') || '0', 10);
+    if (!savedAt) return false;
+    return Date.now() - savedAt < TIME_TRUST_MAX_AGE;
+}
+
+// ============================================
+// ДЕНЕЖНЫЙ ЛИМИТ (localStorage + IndexedDB)
+// ============================================
+
+// --- IndexedDB ---
+const IDB_NAME = 'trenerUsage';
+const IDB_STORE = 'usage';
+
+function idbOpen() {
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open(IDB_NAME, 1);
+        req.onupgradeneeded = () => {
+            if (!req.result.objectStoreNames.contains(IDB_STORE)) {
+                req.result.createObjectStore(IDB_STORE);
+            }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+    });
+}
+
+async function idbGet(key) {
+    try {
+        const db = await idbOpen();
+        return await new Promise((resolve) => {
+            const tx = db.transaction(IDB_STORE, 'readonly');
+            const req = tx.objectStore(IDB_STORE).get(key);
+            req.onsuccess = () => resolve(req.result ?? null);
+            req.onerror = () => resolve(null);
+        });
+    } catch { return null; }
+}
+
+async function idbSet(key, value) {
+    try {
+        const db = await idbOpen();
+        return await new Promise((resolve) => {
+            const tx = db.transaction(IDB_STORE, 'readwrite');
+            tx.objectStore(IDB_STORE).put(value, key);
+            tx.oncomplete = () => resolve(true);
+            tx.onerror = () => resolve(false);
+        });
+    } catch { return false; }
+}
+
+async function idbDelete(key) {
+    try {
+        const db = await idbOpen();
+        return await new Promise((resolve) => {
+            const tx = db.transaction(IDB_STORE, 'readwrite');
+            tx.objectStore(IDB_STORE).delete(key);
+            tx.oncomplete = () => resolve(true);
+            tx.onerror = () => resolve(false);
+        });
+    } catch { return false; }
+}
+
+async function idbClear() {
+    try {
+        const db = await idbOpen();
+        return await new Promise((resolve) => {
+            const tx = db.transaction(IDB_STORE, 'readwrite');
+            tx.objectStore(IDB_STORE).clear();
+            tx.oncomplete = () => resolve(true);
+            tx.onerror = () => resolve(false);
+        });
+    } catch { return false; }
+}
+
+// --- Ключи ---
 function todayKey() {
     const d = new Date(now());
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 const usageKey = (id) => `usage:${id}:${todayKey()}`;
-function getUsedMs(id) { return parseInt(localStorage.getItem(usageKey(id)) || '0', 10); }
-function addUsedMs(id, ms) {
-    const total = getUsedMs(id) + ms;
-    localStorage.setItem(usageKey(id), String(total));
-    return total;
-}
-function setUsedMs(id, ms) { localStorage.setItem(usageKey(id), String(Math.max(0, ms))); }
 
-function checkDailyLimit(site) {
+// --- Чтение/запись с двух слоёв ---
+// Синхронный "быстрый" get из localStorage
+function getUsedMsSync(id) {
+    return parseInt(localStorage.getItem(usageKey(id)) || '0', 10);
+}
+
+// Асинхронный get с учётом IndexedDB (берём максимум)
+async function getUsedMs(id) {
+    const ls = getUsedMsSync(id);
+    const idb = parseInt((await idbGet(usageKey(id))) || 0, 10);
+    return Math.max(ls, idb);
+}
+
+// Запись: пишем в оба слоя
+async function setUsedMs(id, ms) {
+    const value = Math.max(0, ms);
+    localStorage.setItem(usageKey(id), String(value));
+    await idbSet(usageKey(id), value);
+}
+
+// Добавление: учитываем максимум из двух слоёв
+async function addUsedMs(id, ms) {
+    const current = await getUsedMs(id);
+    const newValue = current + ms;
+    await setUsedMs(id, newValue);
+    return newValue;
+}
+
+// ============================================
+// ПРОВЕРКА ЛИМИТА
+// ============================================
+// Синхронная быстрая проверка (для карточки) — только localStorage
+// Для точной — используется async-версия
+function checkDailyLimitSync(site) {
+    if (!isTimeTrusted()) {
+        return {
+            ok: false, used: 0, limit: site.limitMs || 0, left: 0, percent: 0,
+            timeError: true,
+            reason: 'Время не синхронизировано. Проверьте интернет.'
+        };
+    }
     const limit = site.limitMs || 0;
     if (limit <= 0) return { ok: true, used: 0, limit: 0, left: 0, percent: 0 };
-    const used = getUsedMs(site.id);
+    const used = getUsedMsSync(site.id);
     const left = Math.max(0, limit - used);
     const percent = Math.min(100, (used / limit) * 100);
     if (used >= limit) return {
@@ -298,7 +409,30 @@ function checkDailyLimit(site) {
     return { ok: true, used, limit, left, percent };
 }
 
-// Тесты
+// Асинхронная точная проверка (для tryOpenSite)
+async function checkDailyLimit(site) {
+    if (!isTimeTrusted()) {
+        return {
+            ok: false, used: 0, limit: site.limitMs || 0, left: 0, percent: 0,
+            timeError: true,
+            reason: 'Время не синхронизировано. Проверьте интернет.'
+        };
+    }
+    const limit = site.limitMs || 0;
+    if (limit <= 0) return { ok: true, used: 0, limit: 0, left: 0, percent: 0 };
+    const used = await getUsedMs(site.id);
+    const left = Math.max(0, limit - used);
+    const percent = Math.min(100, (used / limit) * 100);
+    if (used >= limit) return {
+        ok: false, used, limit, left: 0, percent: 100,
+        reason: `Лимит исчерпан (${formatMinutes(used)}/${formatMinutes(limit)} мин)`
+    };
+    return { ok: true, used, limit, left, percent };
+}
+
+// ============================================
+// ТЕСТЫ
+// ============================================
 function isTestPassed(id) {
     if (window.AndroidBridge?.isTestPassed) {
         try { return !!window.AndroidBridge.isTestPassed(id); } catch {}
@@ -522,6 +656,7 @@ function resolveRefs() {
 // ============================================
 async function syncTime() {
     const providers = window.CONFIG?.timeSource?.providers || [];
+
     for (const p of providers) {
         try {
             const res = await fetch(p.url, { cache: 'no-store' });
@@ -531,12 +666,32 @@ async function syncTime() {
             if (raw == null) continue;
             const ms = raw * (p.multiplier || 1);
             if (!isFinite(ms) || ms <= 0) continue;
+
             state.serverOffset = ms - Date.now();
             state.serverSynced = true;
+
+            // Сохраняем смещение и метку
+            localStorage.setItem('serverOffset', String(state.serverOffset));
+            localStorage.setItem('serverSyncAt', String(Date.now()));
+
             updateTimeStatus(true, p.name);
             return true;
         } catch {}
     }
+
+    // Фолбэк: последнее сохранённое смещение
+    const saved = localStorage.getItem('serverOffset');
+    const savedAt = parseInt(localStorage.getItem('serverSyncAt') || '0', 10);
+
+    if (saved && Date.now() - savedAt < TIME_TRUST_MAX_AGE) {
+        state.serverOffset = parseInt(saved, 10);
+        state.serverSynced = false;
+        updateTimeStatus(false);
+        console.warn('⚠️ Время из кэша:', new Date(now()).toISOString());
+        return false;
+    }
+
+    state.serverOffset = 0;
     state.serverSynced = false;
     updateTimeStatus(false);
     return false;
@@ -550,6 +705,10 @@ function updateTimeStatus(ok, source) {
         el.className = 'time-status ok';
         el.textContent = `⏱ ${drift >= 0 ? '+' : ''}${drift}с`;
         el.title = `Источник: ${source}`;
+    } else if (isTimeTrusted()) {
+        el.className = 'time-status ok';
+        el.textContent = `⏱ кэш`;
+        el.title = 'Время из сохранённого смещения';
     } else {
         el.className = 'time-status error';
         el.textContent = '⚠ время';
@@ -630,19 +789,19 @@ async function renderSites() {
     }
 
     for (const site of cfg.sites) {
-        const card = buildSiteCard(site, pos);
+        const card = await buildSiteCard(site, pos);
         list.appendChild(card);
     }
 
     updateGeoStatus(pos);
 }
 
-function buildSiteCard(site, pos) {
+async function buildSiteCard(site, pos) {
     const card = document.createElement('div');
     card.className = 'site-card';
 
-    // Проверки
-    const lim = checkDailyLimit(site);
+    // Проверки — точные, с IndexedDB
+    const lim = await checkDailyLimit(site);
     const sch = checkSchedule(site);
     const geo = site.geofence ? checkGeofence(site, pos) : { ok: true, kind: 'none' };
     const tests = checkRequiredTests(site);
@@ -653,6 +812,11 @@ function buildSiteCard(site, pos) {
 
     // Чипы статуса
     const chips = [];
+
+    // Время недостоверно — предупреждение
+    if (lim.timeError) {
+        chips.push(`<span class="status-chip error">⚠ время</span>`);
+    }
 
     // Лимит
     if (lim.limit > 0) {
@@ -754,8 +918,8 @@ function updateGeoStatus(pos) {
 // ============================================
 // ДЕТАЛИ САЙТА
 // ============================================
-function showSiteDetails(site, pos) {
-    const lim = checkDailyLimit(site);
+async function showSiteDetails(site, pos) {
+    const lim = await checkDailyLimit(site);
     const sch = checkSchedule(site);
     const geo = site.geofence ? checkGeofence(site, pos) : null;
     const tests = checkRequiredTests(site);
@@ -763,6 +927,10 @@ function showSiteDetails(site, pos) {
 
     const rows = [];
     rows.push(`<div class="modal-info-row"><span>URL</span><strong>${escapeHtml(site.url)}</strong></div>`);
+
+    if (lim.timeError) {
+        rows.push(`<div class="modal-info-row"><span>Время</span><strong class="error">Не синхронизировано</strong></div>`);
+    }
 
     if (lim.limit > 0) {
         rows.push(`<div class="modal-info-row"><span>Лимит</span><strong>${formatMinutes(lim.used)} / ${formatMinutes(lim.limit)} мин</strong></div>`);
@@ -774,7 +942,6 @@ function showSiteDetails(site, pos) {
         rows.push(`<div class="modal-info-row"><span>Расписание</span><strong class="${sch.ok ? 'ok' : 'error'}">${site.schedule.days.map(d => dayNames[d]).join(', ')} ${site.schedule.from}–${site.schedule.to}</strong></div>`);
     }
 
-    // Интервальный доступ
     if (site.intervalAccess?.enabled) {
         const ia = site.intervalAccess;
         const check = checkIntervalAccess(site);
@@ -834,15 +1001,21 @@ function showSiteDetails(site, pos) {
 // ОТКРЫТИЕ САЙТА
 // ============================================
 async function tryOpenSite(site) {
-    // 1. Дневной лимит
-    const lim = checkDailyLimit(site);
-    if (!lim.ok) { toast(`⏱ ${lim.reason}`, 'error'); return; }
+    // 1. Проверка доверия времени
+    if (!isTimeTrusted()) {
+        toast('⚠ Время не синхронизировано. Подключите интернет.', 'error', 6000);
+        return;
+    }
 
-    // 2. Расписание
+    // 2. Дневной лимит
+    const lim = await checkDailyLimit(site);
+    if (!lim.ok) { toast(`⏱ ${lim.reason}`, 'error', 6000); return; }
+
+    // 3. Расписание
     const sch = checkSchedule(site);
     if (!sch.ok) { toast(`🕐 ${sch.reason}`, 'warn', 6000); return; }
 
-    // 3. Интервальный доступ
+    // 4. Интервальный доступ
     const ia = checkIntervalAccess(site);
     if (!ia.ok) {
         const msg = ia.kind === 'closed'
@@ -852,7 +1025,7 @@ async function tryOpenSite(site) {
         return;
     }
 
-    // 4. Геоточка
+    // 5. Геоточка
     if (site.geofence) {
         try {
             const pos = await getCurrentPosition(true);
@@ -861,11 +1034,11 @@ async function tryOpenSite(site) {
         } catch (e) { toast(`📍 Геолокация: ${e.message}`, 'error'); return; }
     }
 
-    // 5. Тесты
+    // 6. Тесты
     const tests = checkRequiredTests(site);
     if (!tests.ok) { toast(`📚 ${tests.reason}`, 'warn', 6000); return; }
 
-    // 6. Пароль
+    // 7. Пароль
     if (site.password?.enabled) {
         const pwdResult = await requestPassword(site);
         if (!pwdResult) return;
@@ -914,9 +1087,9 @@ function trackUsage(site) {
     state.activeSiteId = site.id;
     state.activeSiteStartedAt = started;
 
-    const commit = () => {
+    const commit = async () => {
         const elapsed = Math.min(Date.now() - started, planned);
-        addUsedMs(site.id, elapsed);
+        await addUsedMs(site.id, elapsed);
         state.activeSiteId = null;
     };
 
@@ -935,62 +1108,64 @@ function trackUsage(site) {
 // ============================================
 // СВОДКА
 // ============================================
-function renderSummary() {
+async function renderSummary() {
     const list = $('#summary-list');
     const dateEl = $('#summary-date');
     const sites = window.SITES_CONFIG?.sites || [];
 
     const d = new Date(now());
     const days = ['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'];
-    dateEl.textContent = `${days[d.getDay()]}, ${d.toLocaleDateString('ru-RU')}`;
 
-    const items = sites
-        .map(s => ({ site: s, used: getUsedMs(s.id), limit: s.limitMs || 0 }))
-        .filter(x => x.used > 0)
-        .sort((a, b) => b.used - a.used);
+    const trustBadge = isTimeTrusted()
+        ? `<span class="status-chip ok" style="font-size:0.72rem;margin-left:8px">✓ время</span>`
+        : `<span class="status-chip error" style="font-size:0.72rem;margin-left:8px">⚠ время</span>`;
+
+    dateEl.innerHTML = `${days[d.getDay()]}, ${d.toLocaleDateString('ru-RU')}${trustBadge}`;
+
+    // Собираем с учётом IndexedDB
+    const items = [];
+    for (const s of sites) {
+        const used = await getUsedMs(s.id);
+        if (used > 0) items.push({ site: s, used, limit: s.limitMs || 0 });
+    }
+    items.sort((a, b) => b.used - a.used);
 
     if (!items.length) {
         list.innerHTML = '<div class="summary-empty">Сегодня ещё ничего не открывалось</div>';
-    } else {
-        const totalUsed = items.reduce((sum, x) => sum + x.used, 0);
-        const totalHtml = `
-            <div class="summary-total">
-                <span class="summary-total-label">Всего сегодня</span>
-                <span class="summary-total-value">${formatTime(totalUsed)}</span>
-            </div>
-        `;
-
-        const itemsHtml = items.map(({ site, used, limit }) => {
-            const percent = limit > 0 ? Math.min(100, (used / limit) * 100) : 0;
-            const over = limit > 0 && used >= limit;
-            const limitText = limit > 0 ? `${formatMinutes(used)} / ${formatMinutes(limit)} мин` : formatTime(used);
-            return `
-                <div class="summary-item">
-                    <div class="summary-icon">${site.icon || '🌐'}</div>
-                    <div class="summary-body">
-                        <div class="summary-name">${escapeHtml(site.name)}</div>
-                        <div class="summary-stats">
-                            <span>${limitText}</span>
-                            <span>${formatTime(used)}</span>
-                        </div>
-                        <div class="summary-bar">
-                            <div class="summary-bar-fill ${over ? 'over' : ''}" style="width:${percent}%"></div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-
-        list.innerHTML = totalHtml + itemsHtml;
+        return;
     }
 
-    $('#reset-usage-btn').onclick = () => {
-        if (!confirm('Сбросить счётчики за сегодня?')) return;
-        sites.forEach(s => setUsedMs(s.id, 0));
-        toast('Счётчики сброшены', 'success');
-        renderSummary();
-        renderSites();
-    };
+    const totalUsed = items.reduce((sum, x) => sum + x.used, 0);
+    const totalHtml = `
+        <div class="summary-total">
+            <span class="summary-total-label">Всего сегодня</span>
+            <span class="summary-total-value">${formatTime(totalUsed)}</span>
+        </div>
+    `;
+
+    const itemsHtml = items.map(({ site, used, limit }) => {
+        const percent = limit > 0 ? Math.min(100, (used / limit) * 100) : 0;
+        const over = limit > 0 && used >= limit;
+        const limitText = limit > 0 ? `${formatMinutes(used)} / ${formatMinutes(limit)} мин` : formatTime(used);
+        return `
+            <div class="summary-item">
+                <div class="summary-icon">${site.icon || '🌐'}</div>
+                <div class="summary-body">
+                    <div class="summary-name">${escapeHtml(site.name)}</div>
+                    <div class="summary-stats">
+                        <span>${limitText}</span>
+                        <span>${formatTime(used)}</span>
+                    </div>
+                    <div class="summary-bar">
+                        <div class="summary-bar-fill ${over ? 'over' : ''}" style="width:${percent}%"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    list.innerHTML = totalHtml + itemsHtml;
+    // Кнопки сброса здесь НЕТ — только в Настройках (отладка)
 }
 
 // ============================================
@@ -1142,6 +1317,7 @@ function renderSettings() {
     $('#diag-base').textContent = BASE_URL;
     $('#diag-offset').textContent = `${Math.round(state.serverOffset / 1000)}с`;
     $('#diag-now').textContent = new Date(now()).toLocaleString('ru-RU');
+    $('#diag-time-trust').textContent = isTimeTrusted() ? '✓ доверенное' : '⚠ нет';
     $('#diag-geo').textContent = state.lastPosition
         ? `${state.lastPosition.lat.toFixed(4)}, ${state.lastPosition.lon.toFixed(4)}`
         : 'нет';
@@ -1192,6 +1368,7 @@ $('#check-btn').addEventListener('click', checkAnswers);
 $('#reset-btn').addEventListener('click', resetQuiz);
 $('#back-btn').addEventListener('click', goBack);
 
+// Сброс отметок тестов
 $('#reset-tests-btn').addEventListener('click', () => {
     if (!confirm('Сбросить все отметки тестов?')) return;
     window.TEST_REGISTRY.forEach(t => unmarkTestPassed(t.id));
@@ -1200,10 +1377,24 @@ $('#reset-tests-btn').addEventListener('click', () => {
     renderTopics();
 });
 
-$('#reset-all-btn').addEventListener('click', () => {
-    if (!confirm('Полный сброс? Будут удалены все счётчики, отметки тестов и попытки паролей.')) return;
+// Полный сброс (localStorage + IndexedDB)
+$('#reset-all-btn').addEventListener('click', async () => {
+    if (!confirm('Полный сброс? Будут удалены все счётчики, отметки тестов и попытки паролей.\n\nЭто действие необратимо.')) return;
     localStorage.clear();
+    await idbClear();
     location.reload();
+});
+
+// Отладочный сброс счётчиков времени
+$('#debug-reset-usage').addEventListener('click', async () => {
+    const sites = window.SITES_CONFIG?.sites || [];
+    if (!confirm(`Сбросить счётчики времени для ${sites.length} сайтов?\n\nЭто действие только для отладки.`)) return;
+    for (const s of sites) {
+        await setUsedMs(s.id, 0);
+    }
+    toast('Счётчики сброшены (отладка)', 'warn');
+    renderSettings();
+    if ($('#screen-summary').classList.contains('active')) renderSummary();
 });
 
 // ============================================
@@ -1228,25 +1419,24 @@ $('#reset-all-btn').addEventListener('click', () => {
     renderTopics();
     initAccordion();
 
-    window.addEventListener('beforeunload', () => {
+    window.addEventListener('beforeunload', async () => {
         if (state.activeSiteId) {
             const elapsed = Date.now() - state.activeSiteStartedAt;
-            addUsedMs(state.activeSiteId, elapsed);
+            // best effort
+            await addUsedMs(state.activeSiteId, elapsed);
         }
     });
 
     setInterval(syncTime, cfg?.timeSource?.resyncIntervalMs || 30000);
 
+    // Обновление сводки раз в 5 секунд, если открыта
     setInterval(() => {
-        if ($('#screen-summary').classList.contains('active')) renderSummary();
+        if ($('#screen-summary')?.classList.contains('active')) renderSummary();
     }, 5000);
 
-    // Автообновление карточек сайтов, если открыт экран сайтов
-    // — чтобы тикали окна интервального доступа и лимиты
+    // Обновление карточек сайтов раз в 15 секунд, если открыт экран
     setInterval(() => {
-        if ($('#screen-sites')?.classList.contains('active')) {
-            renderSites();
-        }
+        if ($('#screen-sites')?.classList.contains('active')) renderSites();
     }, 15000);
 
     console.log('✅ Готово');

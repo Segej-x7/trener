@@ -2,35 +2,35 @@
   "schedules": [
     {
       "id": "weekdays-9-18",
-      "label": "Будни 09:00–18:00 (МСК)",
+      "label": "Будни 09:00–18:00 (Красноярск)",
       "days": [1, 2, 3, 4, 5],
       "from": "09:00",
       "to": "18:00",
-      "timezone": "Europe/Moscow"
+      "timezone": "Asia/Krasnoyarsk"
     },
     {
       "id": "everyday-8-22",
-      "label": "Каждый день 08:00–22:00 (МСК)",
+      "label": "Каждый день 08:00–22:00 (Красноярск)",
       "days": [0, 1, 2, 3, 4, 5, 6],
       "from": "08:00",
       "to": "22:00",
-      "timezone": "Europe/Moscow"
+      "timezone": "Asia/Krasnoyarsk"
     },
     {
       "id": "weekend-10-20",
-      "label": "Выходные 10:00–20:00 (МСК)",
+      "label": "Выходные 10:00–20:00 (Красноярск)",
       "days": [0, 6],
       "from": "10:00",
       "to": "20:00",
-      "timezone": "Europe/Moscow"
+      "timezone": "Asia/Krasnoyarsk"
     },
     {
       "id": "evening-19-23",
-      "label": "Вечер 19:00–23:00 (МСК)",
+      "label": "Вечер 19:00–23:00 (Красноярск)",
       "days": [0, 1, 2, 3, 4, 5, 6],
       "from": "19:00",
       "to": "23:00",
-      "timezone": "Europe/Moscow"
+      "timezone": "Asia/Krasnoyarsk"
     }
   ]
 }

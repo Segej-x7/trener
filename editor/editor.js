@@ -1,6 +1,8 @@
 // ============================================
 // editor.js — редактор правил доступа
 // + защита по расписанию (editor-policy.json)
+// + интервальный доступ (intervalAccess)
+// Часовой пояс по умолчанию: Asia/Krasnoyarsk
 // ============================================
 
 // ---------- Состояние ----------
@@ -13,6 +15,9 @@ const STATE = {
 };
 
 const STORAGE_KEY = 'accessEditorState';
+
+// Часовой пояс по умолчанию
+const DEFAULT_TZ = 'Asia/Krasnoyarsk';
 
 // ---------- Утилиты ----------
 const $  = (s, r = document) => r.querySelector(s);
@@ -59,6 +64,15 @@ function loadState() {
         if (!raw) return;
         Object.assign(STATE, JSON.parse(raw));
     } catch (e) { console.warn('loadState:', e); }
+}
+
+// Преобразование локального времени в ISO с учётом смещения
+function localToIso(localStr) {
+    if (!localStr) return null;
+    // localStr вида "2026-01-01T00:00"
+    const d = new Date(localStr);
+    if (isNaN(d.getTime())) return null;
+    return d.toISOString();
 }
 
 // ============================================
@@ -123,7 +137,7 @@ function editorCheckSchedule(policy) {
     if (!sc) return { ok: true };
 
     const date = new Date(editorNow());
-    const tz = sc.timezone || 'UTC';
+    const tz = sc.timezone || DEFAULT_TZ;
 
     const dayFmt = new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'short' });
     const dayMap = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
@@ -275,7 +289,7 @@ async function checkEditorAccess() {
     return true;
 }
 
-// --- Автопериодическая проверка (закрыть редактор, если окно закончилось) ---
+// --- Автопериодическая проверка ---
 setInterval(async () => {
     const editorRoot = $('#editor-root');
     if (!editorRoot || editorRoot.classList.contains('hidden')) return;
@@ -325,11 +339,16 @@ function renderSites() {
         const geo = resolveGeo(site.geofence);
         const sch = resolveSchedule(site.schedule);
         const pwd = site.password;
+        const ia = site.intervalAccess;
 
         const tests = (site.requiredTestIds || []).map(id => {
             const t = STATE.testIndex.find(x => x.id === id);
             return `<span class="badge badge-test">📚 ${escapeHtml(t ? t.title : id)}</span>`;
         }).join('');
+
+        const iaBadge = (ia?.enabled)
+            ? `<span class="badge badge-interval">⏳ ${Math.round(ia.windowMs / 60000)}/${Math.round(ia.intervalMs / 60000)} мин</span>`
+            : '';
 
         const el = document.createElement('div');
         el.className = 'item';
@@ -341,6 +360,7 @@ function renderSites() {
                     <span class="badge">⏱ ${Math.round((site.limitMs || 0) / 60000)} мин</span>
                     ${geo ? `<span class="badge badge-geo">📍 ${escapeHtml(geo.label)}</span>` : ''}
                     ${sch ? `<span class="badge badge-sched">🕐 ${escapeHtml(sch.label)}</span>` : ''}
+                    ${iaBadge}
                     ${pwd?.enabled ? `<span class="badge badge-pwd">🔒 пароль</span>` : ''}
                     ${tests}
                 </div>
@@ -713,7 +733,9 @@ function openSiteForm(index) {
     const s = isNew ? {
         id: uid('site'), url: '', name: '', icon: '🌐',
         limitMs: 300000, requiredTestIds: [],
-        geofence: null, schedule: null, password: null
+        geofence: null, schedule: null,
+        intervalAccess: null,
+        password: null
     } : JSON.parse(JSON.stringify(STATE.sites[index]));
 
     const geoOptions = ['<option value="">— нет —</option>']
@@ -732,6 +754,12 @@ function openSiteForm(index) {
         </label>`).join('');
 
     const pwd = s.password || {};
+    const ia = s.intervalAccess || {};
+
+    // Значение для datetime-local в ISO формате без времени
+    const iaAnchorValue = ia.anchorAt
+        ? new Date(ia.anchorAt).toISOString().slice(0, 16)
+        : '';
 
     openModal(isNew ? 'Новый сайт' : 'Редактирование сайта', `
         <div class="field"><label>ID</label><input id="f-id" value="${escapeHtml(s.id)}" required></div>
@@ -755,6 +783,35 @@ function openSiteForm(index) {
             </div>
         </div>
 
+        <!-- ======== ИНТЕРВАЛЬНЫЙ ДОСТУП ======== -->
+        <div class="field-section">
+            <div class="checkbox-row">
+                <input type="checkbox" id="f-ia-enabled" ${ia.enabled ? 'checked' : ''}>
+                <label for="f-ia-enabled" style="cursor:pointer;margin:0">⏳ Интервальный доступ (окно каждые N минут)</label>
+            </div>
+        </div>
+
+        <div id="ia-fields" style="display:${ia.enabled ? 'block' : 'none'}">
+            <div class="field-row">
+                <div class="field">
+                    <label>Период цикла (минуты)</label>
+                    <input id="f-ia-interval" type="number" min="1" value="${ia.intervalMs ? Math.round(ia.intervalMs / 60000) : 120}">
+                    <div class="hint">120 = каждые 2 часа</div>
+                </div>
+                <div class="field">
+                    <label>Длительность окна (минуты)</label>
+                    <input id="f-ia-window" type="number" min="1" value="${ia.windowMs ? Math.round(ia.windowMs / 60000) : 15}">
+                    <div class="hint">15 = окно 15 минут</div>
+                </div>
+            </div>
+            <div class="field">
+                <label>Точка отсчёта</label>
+                <input id="f-ia-anchor" type="datetime-local" value="${escapeHtml(iaAnchorValue)}">
+                <div class="hint">От этой даты считаются все циклы. Оставьте пустым = 1970-01-01</div>
+            </div>
+        </div>
+
+        <!-- ======== ПАРОЛЬ ======== -->
         <div class="field-section">
             <div class="checkbox-row">
                 <input type="checkbox" id="f-pwd-enabled" ${pwd.enabled ? 'checked' : ''}>
@@ -821,6 +878,7 @@ function openSiteForm(index) {
             requiredTestIds,
             geofence: $('#f-geo').value || null,
             schedule: $('#f-sch').value || null,
+            intervalAccess: null,
             password: null
         };
 
@@ -829,6 +887,25 @@ function openSiteForm(index) {
             return;
         }
 
+        // --- Интервальный доступ ---
+        if ($('#f-ia-enabled').checked) {
+            const intervalMin = Math.max(1, +$('#f-ia-interval').value || 120);
+            const windowMin = Math.max(1, +$('#f-ia-window').value || 15);
+            if (windowMin > intervalMin) {
+                toast('Окно не может быть больше периода', 'error');
+                return;
+            }
+            const anchorRaw = $('#f-ia-anchor').value;
+            obj.intervalAccess = {
+                enabled: true,
+                intervalMs: intervalMin * 60000,
+                windowMs: windowMin * 60000,
+                anchorAt: anchorRaw ? localToIso(anchorRaw) : null,
+                timezone: DEFAULT_TZ
+            };
+        }
+
+        // --- Пароль ---
         if ($('#f-pwd-enabled').checked) {
             const realInput = $('#f-pwd-real').value.trim();
             const duressInput = $('#f-pwd-duress').value.trim();
@@ -859,6 +936,9 @@ function openSiteForm(index) {
 
     $('#f-pwd-enabled').onchange = (e) => {
         $('#pwd-fields').style.display = e.target.checked ? 'block' : 'none';
+    };
+    $('#f-ia-enabled').onchange = (e) => {
+        $('#ia-fields').style.display = e.target.checked ? 'block' : 'none';
     };
 }
 
@@ -904,10 +984,10 @@ function openScheduleForm(index) {
     const isNew = index === null;
     const s = isNew ? {
         id: uid('sch'), label: '',
-        days: [1, 2, 3, 4, 5], from: '09:00', to: '18:00', timezone: 'Europe/Moscow'
+        days: [1, 2, 3, 4, 5], from: '09:00', to: '18:00', timezone: DEFAULT_TZ
     } : STATE.schedules[index];
 
-    const daysHtml = ['вс','пн','вт','ср','чт','пт','сб'].map((name, i) => `
+    const daysHtml = DAY_NAMES.map((name, i) => `
         <label>
             <input type="checkbox" value="${i}" ${s.days.includes(i) ? 'checked' : ''}>
             ${name}
@@ -924,8 +1004,8 @@ function openScheduleForm(index) {
         </div>
         <div class="field">
             <label>Часовой пояс</label>
-            <input id="s-tz" value="${escapeHtml(s.timezone)}" required placeholder="Europe/Moscow">
-            <div class="hint">IANA-имя: Europe/Moscow, Asia/Yekaterinburg, UTC и т.п.</div>
+            <input id="s-tz" value="${escapeHtml(s.timezone)}" required placeholder="Asia/Krasnoyarsk">
+            <div class="hint">IANA-имя: Asia/Krasnoyarsk, Asia/Yekaterinburg, UTC и т.п.</div>
         </div>
         <div class="form-actions">
             <button type="button" class="btn btn-secondary" onclick="closeModal()">Отмена</button>
@@ -940,7 +1020,7 @@ function openScheduleForm(index) {
             days,
             from: $('#s-from').value,
             to: $('#s-to').value,
-            timezone: $('#s-tz').value.trim()
+            timezone: $('#s-tz').value.trim() || DEFAULT_TZ
         };
         if (isNew) STATE.schedules.push(obj);
         else STATE.schedules[index] = obj;
@@ -1114,7 +1194,6 @@ async function tryLoadTestIndex(force = false) {
     const allowed = await checkEditorAccess();
     if (!allowed) {
         console.log('🔒 Редактор закрыт по расписанию');
-        // Подключаем кнопку «Проверить снова»
         const retryBtn = document.getElementById('lock-retry');
         if (retryBtn) {
             retryBtn.onclick = async () => {
@@ -1130,5 +1209,5 @@ async function tryLoadTestIndex(force = false) {
     loadState();
     await tryLoadTestIndex();
     renderAll();
-    console.log('✅ Редактор готов');
+    console.log('✅ Редактор готов (tz:', DEFAULT_TZ + ')');
 })();

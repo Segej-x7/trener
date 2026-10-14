@@ -5,11 +5,10 @@
       "days": [0, 1, 2, 3, 4, 5, 6],
       "from": "22:00",
       "to": "23:00",
-      "timezone": "Europe/Moscow"
+      "timezone": "Asia/Krasnoyarsk"
     },
     "requireTimeSync": true,
-    "gracePeriodMs": 0,
-    "blockMessage": "Редактор доступен только с 22:00 до 23:00",
+    "blockMessage": "Редактор доступен только с 22:00 до 23:00 (Красноярск)",
     "allowPasswordOverride": false,
     "overrideHash": null
   }

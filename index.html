@@ -84,20 +84,20 @@
 </main>
 
 <!-- ============ ЭКРАН 3: СВОДКА ============ -->
+<!-- Кнопка сброса УБРАНА. Сброс — только в Настройках (отладка). -->
 <main id="screen-summary" class="screen">
     <div class="screen-header">
         <h1>📊 Сводка за сегодня</h1>
         <p id="summary-date"></p>
     </div>
     <div id="summary-list" class="summary-list"></div>
-    <button id="reset-usage-btn" class="btn btn-danger btn-full">Сбросить счётчик за сегодня</button>
 </main>
 
 <!-- ============ ЭКРАН 4: НАСТРОЙКИ ============ -->
 <main id="screen-settings" class="screen">
     <div class="screen-header">
         <h1>⚙️ Настройки</h1>
-        <p>Отладка и управление (для тестирования без Android)</p>
+        <p>Отладка и управление</p>
     </div>
 
     <div class="settings-group">
@@ -105,6 +105,7 @@
         <div class="diag-row"><span>BASE_URL</span><code id="diag-base"></code></div>
         <div class="diag-row"><span>Смещение времени</span><code id="diag-offset"></code></div>
         <div class="diag-row"><span>Текущее серверное время</span><code id="diag-now"></code></div>
+        <div class="diag-row"><span>Доверие времени</span><code id="diag-time-trust"></code></div>
         <div class="diag-row"><span>Геопозиция</span><code id="diag-geo"></code></div>
         <div class="diag-row"><span>Загружено тестов</span><code id="diag-tests"></code></div>
         <div class="diag-row"><span>Загружено сайтов</span><code id="diag-sites"></code></div>
@@ -119,7 +120,16 @@
     <div class="settings-group">
         <h3>Опасная зона</h3>
         <button id="reset-tests-btn" class="btn btn-secondary btn-full">Сбросить все отметки тестов</button>
-        <button id="reset-all-btn" class="btn btn-danger btn-full">Полный сброс (localStorage)</button>
+        <button id="reset-all-btn" class="btn btn-danger btn-full">Полный сброс (localStorage + IndexedDB)</button>
+    </div>
+
+    <!-- Отладочная секция: счётчики времени -->
+    <div class="settings-group" id="debug-group">
+        <h3>🔧 Отладка</h3>
+        <p class="hint">Только для проверки правил. В обычной работе не используйте.</p>
+        <button id="debug-reset-usage" class="btn btn-danger btn-full">
+            Сбросить счётчики времени за сегодня
+        </button>
     </div>
 </main>
 

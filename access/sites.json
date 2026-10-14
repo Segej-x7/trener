@@ -28,7 +28,7 @@
         "intervalMs": 7200000,
         "windowMs": 900000,
         "anchorAt": "2026-01-01T00:00:00+03:00",
-        "timezone": "Europe/Moscow"
+        "timezone": "Asia/Krasnoyarsk"
       },
 
       "password": {
@@ -59,7 +59,7 @@
         "intervalMs": 10800000,
         "windowMs": 1200000,
         "anchorAt": "2026-01-01T00:00:00+03:00",
-        "timezone": "Europe/Moscow"
+        "timezone": "Asia/Krasnoyarsk"
       },
 
       "password": {
@@ -90,7 +90,7 @@
         "intervalMs": 14400000,
         "windowMs": 1800000,
         "anchorAt": "2026-01-01T00:00:00+03:00",
-        "timezone": "Europe/Moscow"
+        "timezone": "Asia/Krasnoyarsk"
       },
 
       "password": null
@@ -125,7 +125,7 @@
         "intervalMs": 3600000,
         "windowMs": 600000,
         "anchorAt": "2026-01-01T00:00:00+03:00",
-        "timezone": "Europe/Moscow"
+        "timezone": "Asia/Krasnoyarsk"
       },
 
       "password": null
