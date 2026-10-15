@@ -1,0 +1,5 @@
+
+
+cd D:\YandexDisk\Sergey_catalog\Programming\ANDROID\Dostyp_cherez_test\Версия_3
+
+python -m http.server 8000

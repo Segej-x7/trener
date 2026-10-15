@@ -4,90 +4,126 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#3454b4">
-<title>Редактор правил доступа</title>
+<title>Настройки правил</title>
 <link rel="stylesheet" href="editor.css">
 </head>
 <body>
 
-<!-- ============================================ -->
-<!-- ЭКРАН БЛОКИРОВКИ (показывается вне расписания) -->
-<!-- ============================================ -->
-<div id="lock-screen" class="lock-screen hidden">
-    <div class="lock-card">
-        <div class="lock-icon">🔒</div>
-        <h1>Редактор закрыт</h1>
-        <p id="lock-message">Редактор доступен только с 22:00 до 23:00</p>
-
-        <div id="lock-details" class="lock-details"></div>
-
-        <div id="lock-override" class="lock-override hidden">
-            <input type="password" id="lock-password" placeholder="Пароль для входа" autocomplete="off">
-            <button id="lock-submit" class="btn btn-primary">Открыть</button>
-            <p id="lock-error" class="lock-error"></p>
+<header class="header">
+    <div class="header-title">
+        <span class="header-logo">⚙️</span>
+        <div>
+            <h1>Настройки правил</h1>
+            <p>Сайты, места, время</p>
         </div>
-
-        <button id="lock-retry" class="btn btn-secondary">🔄 Проверить снова</button>
     </div>
-</div>
+    <div class="header-toolbar">
+        <button id="btn-import" class="btn btn-secondary">📥 Загрузить</button>
+        <button id="btn-export" class="btn btn-primary">📤 Сохранить</button>
+    </div>
+    <input type="file" id="file-import" accept=".json" hidden>
+</header>
 
-<!-- ============================================ -->
-<!-- РЕДАКТОР (скрыт до успешной проверки)         -->
-<!-- ============================================ -->
-<div id="editor-root" class="hidden">
+<main class="main">
 
-    <header class="editor-header">
-        <div class="editor-title">
-            <span class="editor-logo">⚙️</span>
-            <div>
-                <h1>Редактор правил</h1>
-                <p>Настройка сайтов, геоточек, расписаний, тестов</p>
-            </div>
+    <!-- ============ САЙТЫ ============ -->
+    <section class="section">
+        <div class="section-header">
+            <h2>🌐 Сайты</h2>
+            <button id="add-site" class="btn btn-small btn-primary">+ Добавить</button>
         </div>
-        <div class="editor-toolbar">
-            <button id="btn-import" class="btn btn-secondary">📥 Импорт</button>
-            <button id="btn-export" class="btn btn-primary">📤 Экспорт</button>
-            <button id="btn-preview" class="btn btn-secondary">👁 Предпросмотр</button>
+        <div id="sites-list" class="list"></div>
+    </section>
+
+    <!-- ============ МЕСТА ============ -->
+    <section class="section">
+        <div class="section-header">
+            <h2>📍 Места</h2>
+            <button id="add-location" class="btn btn-small btn-primary">+ Добавить</button>
         </div>
-        <input type="file" id="file-import" accept=".json" multiple hidden>
-    </header>
+        <div id="locations-list" class="list"></div>
+    </section>
 
-    <nav class="tabs-nav">
-        <button class="tab-btn active" data-tab="sites">🌐 Сайты</button>
-        <button class="tab-btn" data-tab="geopoints">📍 Геоточки</button>
-        <button class="tab-btn" data-tab="schedules">🕐 Расписания</button>
-        <button class="tab-btn" data-tab="testsets">📋 Наборы тестов</button>
-        <button class="tab-btn" data-tab="tests">📚 Тесты</button>
-        <button class="tab-btn" data-tab="password">🔒 Пароли</button>
-    </nav>
+    <!-- ============ ВРЕМЕННЫЕ ОКНА ============ -->
+    <section class="section">
+        <div class="section-header">
+            <h2>🕐 Временные окна</h2>
+            <button id="add-window" class="btn btn-small btn-primary">+ Добавить</button>
+        </div>
+        <div id="windows-list" class="list"></div>
+    </section>
 
-    <main>
-        <section id="tab-sites"     class="tab-panel active"></section>
-        <section id="tab-geopoints" class="tab-panel"></section>
-        <section id="tab-schedules" class="tab-panel"></section>
-        <section id="tab-testsets"  class="tab-panel"></section>
-        <section id="tab-tests"     class="tab-panel"></section>
-        <section id="tab-password"  class="tab-panel"></section>
-    </main>
+    <div class="actions-bottom">
+        <button id="btn-preview" class="btn btn-secondary btn-full">👁 Показать JSON</button>
+        <button id="btn-help" class="btn btn-secondary btn-full">❓ Как пользоваться</button>
+    </div>
 
-    <div id="modal" class="modal hidden">
-        <div class="modal-content">
-            <button class="modal-close" id="modal-close">✕</button>
+</main>
+
+<!-- ============ МОДАЛКА ФОРМЫ ============ -->
+<div id="modal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
             <h2 id="modal-title"></h2>
-            <form id="modal-form"></form>
+            <button id="modal-close" class="modal-close">✕</button>
         </div>
+        <div id="modal-body"></div>
     </div>
-
-    <div id="preview" class="modal hidden">
-        <div class="modal-content wide">
-            <button class="modal-close" id="preview-close">✕</button>
-            <h2>Предпросмотр JSON</h2>
-            <div id="preview-body"></div>
-        </div>
-    </div>
-
 </div>
 
-<!-- Тосты — вне editor-root, чтобы показываться и на экране блокировки -->
+<!-- ============ МОДАЛКА ПРЕДПРОСМОТРА ============ -->
+<div id="preview" class="modal hidden">
+    <div class="modal-content wide">
+        <div class="modal-header">
+            <h2>rules.json</h2>
+            <button id="preview-close" class="modal-close">✕</button>
+        </div>
+        <pre id="preview-body"></pre>
+        <button id="preview-copy" class="btn btn-secondary btn-full">📋 Скопировать</button>
+    </div>
+</div>
+
+<!-- ============ МОДАЛКА ПОМОЩИ ============ -->
+<div id="help" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>❓ Как пользоваться</h2>
+            <button id="help-close" class="modal-close">✕</button>
+        </div>
+        <div class="help-body">
+            <h3>Что это</h3>
+            <p>Редактор правил доступа к сайтам. Здесь настраивается: какие сайты доступны, где, когда, на сколько минут.</p>
+
+            <h3>3 шага</h3>
+            <ol>
+                <li><strong>Места</strong> — добавьте точки (Дом, Работа) с координатами и радиусом</li>
+                <li><strong>Временные окна</strong> — добавьте расписания (Будни 9–18, Вечер)</li>
+                <li><strong>Сайты</strong> — добавьте сайты и выберите, где и когда они открываются</li>
+            </ol>
+
+            <h3>Как сохранить</h3>
+            <ol>
+                <li>Нажмите <strong>📤 Сохранить</strong> — скачается <code>rules.json</code></li>
+                <li>Откройте GitHub → <code>access/rules.json</code> → ✏️ Edit</li>
+                <li>Вставьте новый JSON → Commit changes</li>
+                <li>Через 1–2 минуты правила применятся</li>
+            </ol>
+
+            <h3>Пароли</h3>
+            <p>В форме сайта есть раздел «Пароль». Введите:</p>
+            <ul>
+                <li><strong>Основной пароль</strong> — откроет настоящий сайт</li>
+                <li><strong>Подставной пароль</strong> — откроет decoy-сайт (например, «Погода»)</li>
+            </ul>
+            <p>Так, если кто-то заставит вас ввести пароль — вводите подставной, и он увидит безобидный сайт.</p>
+
+            <h3>Интервальный доступ</h3>
+            <p>Можно задать: «каждые 2 часа окно 15 минут». Тогда сайт открывается 00:00–00:15, 02:00–02:15 и т.д.</p>
+        </div>
+    </div>
+</div>
+
+<!-- ============ ТОСТЫ ============ -->
 <div id="toast-root"></div>
 
 <script src="editor.js"></script>

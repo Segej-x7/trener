@@ -35,7 +35,6 @@
     <button class="nav-tab active" data-screen="topics">📚 Темы</button>
     <button class="nav-tab" data-screen="sites">🌐 Сайты</button>
     <button class="nav-tab" data-screen="summary">📊 Сводка</button>
-    <button class="nav-tab" data-screen="settings">⚙️</button>
 </nav>
 
 <!-- ============ ЭКРАН 1: ТЕМЫ ============ -->
@@ -95,47 +94,7 @@
     <div id="summary-list" class="summary-list"></div>
 </main>
 
-<!-- ============ ЭКРАН 4: НАСТРОЙКИ ============ -->
-<main id="screen-settings" class="screen">
-    <div class="screen-header">
-        <h1>⚙️ Настройки</h1>
-        <p>Отладка и управление</p>
-    </div>
-
-    <div class="settings-group">
-        <h3>Диагностика</h3>
-        <div class="diag-row"><span>BASE_URL</span><code id="diag-base"></code></div>
-        <div class="diag-row"><span>Смещение времени</span><code id="diag-offset"></code></div>
-        <div class="diag-row"><span>Текущее серверное время</span><code id="diag-now"></code></div>
-        <div class="diag-row"><span>Доверие времени</span><code id="diag-time-trust"></code></div>
-        <div class="diag-row"><span>Источник времени</span><code id="diag-time-source"></code></div>
-        <div class="diag-row"><span>Геопозиция</span><code id="diag-geo"></code></div>
-        <div class="diag-row"><span>Загружено тестов</span><code id="diag-tests"></code></div>
-        <div class="diag-row"><span>Загружено сайтов</span><code id="diag-sites"></code></div>
-    </div>
-
-    <div class="settings-group">
-        <h3>Отметить тест сданным</h3>
-        <p class="hint">В Android это делается автоматически. Здесь — для отладки.</p>
-        <div id="mark-tests-list" class="mark-tests-list"></div>
-    </div>
-
-    <div class="settings-group">
-        <h3>Опасная зона</h3>
-        <button id="reset-tests-btn" class="btn btn-secondary btn-full">Сбросить все отметки тестов</button>
-        <button id="reset-all-btn" class="btn btn-danger btn-full">Полный сброс (localStorage + IndexedDB)</button>
-    </div>
-
-    <div class="settings-group" id="debug-group">
-        <h3>🔧 Отладка</h3>
-        <p class="hint">Только для проверки правил. В обычной работе не используйте.</p>
-        <button id="debug-reset-usage" class="btn btn-danger btn-full">
-            Сбросить счётчики времени за сегодня
-        </button>
-    </div>
-</main>
-
-<!-- ============ ЭКРАН 5: ТЕСТ ============ -->
+<!-- ============ ЭКРАН 4: ТЕСТ ============ -->
 <div id="screen-quiz" class="screen screen-full">
     <header class="quiz-header">
         <button id="back-btn" class="back-btn">← Назад</button>

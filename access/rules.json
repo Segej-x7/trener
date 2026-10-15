@@ -1,0 +1,159 @@
+{
+  "version": "1.0",
+
+  "locations": [
+    {
+      "name": "Дом",
+      "lat": 54.70708,
+      "lon": 86.21228,
+      "radius": 100
+    },
+    {
+      "name": "Работа",
+      "lat": 55.760000,
+      "lon": 37.640000,
+      "radius": 150
+    },
+    {
+      "name": "Красная площадь",
+      "lat": 55.751244,
+      "lon": 37.618423,
+      "radius": 200
+    }
+  ],
+
+  "timeWindows": [
+    {
+      "name": "Будни 9–18",
+      "days": ["пн", "вт", "ср", "чт", "пт"],
+      "from": "09:00",
+      "to": "18:00",
+      "timezone": "Asia/Krasnoyarsk"
+    },
+    {
+      "name": "Каждый день 8–22",
+      "days": ["пн", "вт", "ср", "чт", "пт", "сб", "вс"],
+      "from": "08:00",
+      "to": "22:00",
+      "timezone": "Asia/Krasnoyarsk"
+    },
+    {
+      "name": "Выходные 10–20",
+      "days": ["сб", "вс"],
+      "from": "10:00",
+      "to": "20:00",
+      "timezone": "Asia/Krasnoyarsk"
+    },
+    {
+      "name": "Вечер 19–23",
+      "days": ["пн", "вт", "ср", "чт", "пт", "сб", "вс"],
+      "from": "19:00",
+      "to": "23:00",
+      "timezone": "Asia/Krasnoyarsk"
+    }
+  ],
+
+  "sites": [
+      {
+      "name": "ЕГРН",
+      "url": "https://www.list-org.com/",
+      "icon": "🌐",
+      "minutesPerDay": 120,
+      "location": null,
+      "timeWindow": null,
+      "intervalWindow": null,
+      "tests": [],
+      "password": null
+    },
+    {
+      "name": "Example.com",
+      "url": "https://example.com",
+      "icon": "🌐",
+      "minutesPerDay": 5,
+      "location": null,
+      "timeWindow": null,
+      "intervalWindow": null,
+      "tests": [],
+      "password": null
+    },
+    {
+      "name": "Wikipedia",
+      "url": "https://wikipedia.org",
+      "icon": "📚",
+      "minutesPerDay": 10,
+      "location": "Красная площадь",
+      "timeWindow": "Будни 9–18",
+      "intervalWindow": {
+        "intervalMinutes": 120,
+        "windowMinutes": 15,
+        "anchor": "2026-01-01T00:00"
+      },
+      "tests": ["html-basics", "html-formatting"],
+      "password": {
+        "real": "sunrise-42",
+        "duress": "cloud-17",
+        "decoyUrl": "https://example.com",
+        "decoyName": "Example.com",
+        "maxAttempts": 3,
+        "blockMinutes": 30,
+        "mode": "requireAlways",
+        "hint": "Связано с восходом"
+      }
+    },
+    {
+      "name": "MDN Web Docs",
+      "url": "https://developer.mozilla.org",
+      "icon": "💻",
+      "minutesPerDay": 15,
+      "location": "Работа",
+      "timeWindow": "Каждый день 8–22",
+      "intervalWindow": null,
+      "tests": ["html-basics", "css-basics", "js-basics"],
+      "password": {
+        "real": "midnight-ocean-77",
+        "duress": "weather-page-12",
+        "decoyUrl": "https://ru.wikipedia.org/wiki/Погода",
+        "decoyName": "Погода",
+        "maxAttempts": 5,
+        "blockMinutes": 60,
+        "mode": "requireOnce",
+        "hint": null
+      }
+    },
+       {
+      "name": "Wikipedia",
+      "url": "https://ru.wikipedia.org/",
+      "icon": "�",
+      "minutesPerDay": 10,
+      "location": "Красная площадь",
+      "timeWindow": "Будни 9–18",
+      "intervalWindow": {
+        "intervalMinutes": 120,
+        "windowMinutes": 15,
+        "anchor": "2026-01-01T00:00"
+      },
+      "tests": ["html-basics"],
+      "password": {
+        "real": "midnight-ocean-77",
+        "duress": "weather-page-12",
+        "decoyUrl": "https://ru.wikipedia.org/wiki/Погода",
+        "decoyName": "Погода",
+        "maxAttempts": 5,
+        "blockMinutes": 60,
+        "mode": "requireOnce",
+        "hint": null
+      }
+    },
+    {
+      "name": "GitHub",
+      "url": "https://github.com",
+      "icon": "🐙",
+      "minutesPerDay": 20,
+      "location": "Дом",
+      "timeWindow": null,
+      "intervalWindow": null,
+      "tests": ["html-basics", "css-basics"],
+      "password": null
+    }
+  ]
+}
