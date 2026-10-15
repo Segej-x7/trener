@@ -1,21 +1,27 @@
 // ============================================
 // app.js — Тренажёр + доступ к сайтам
+// (обновлено: fallback sha256, диагностика, работа без time sync)
 // ============================================
 
 // ============================================
 // БАЗОВЫЙ URL
 // ============================================
 const BASE_URL = (() => {
-    if (window.AndroidBridge?.getBaseUrl) {
-        const b = window.AndroidBridge.getBaseUrl();
-        if (b) { const c = b.replace(/\/+$/, ''); localStorage.setItem('appBaseUrl', c); return c; }
-    }
+    try {
+        if (window.AndroidBridge?.getBaseUrl) {
+            const b = window.AndroidBridge.getBaseUrl();
+            if (b) { const c = b.replace(/\/+$/, ''); localStorage.setItem('appBaseUrl', c); return c; }
+        }
+    } catch (e) { console.warn('AndroidBridge.getBaseUrl error:', e); }
+
     const q = new URLSearchParams(location.search).get('base');
     if (q) { const c = q.replace(/\/+$/, ''); localStorage.setItem('appBaseUrl', c); return c; }
+
     if (location.hostname.endsWith('github.io')) {
         const parts = location.pathname.split('/').filter(Boolean);
         if (parts.length) { const a = `${location.origin}/${parts[0]}`; localStorage.setItem('appBaseUrl', a); return a; }
     }
+
     const s = localStorage.getItem('appBaseUrl');
     return s ? s.replace(/\/+$/, '') : location.origin;
 })();
@@ -36,17 +42,17 @@ const state = {
     lastPosition: null,
     lastPositionPromise: null,
     sessionUnlocked: new Set(),
-    activeSite: null // { id, startedAt, plannedMs, lastCommittedMs, warned, timer }
+    activeSite: null
 };
 
 const now = () => Date.now() + state.serverOffset;
 
-const TIME_TRUST_MAX_AGE = 6 * 60 * 60 * 1000; // 6 часов
+const TIME_TRUST_MAX_AGE = 6 * 60 * 60 * 1000;
 
 let lastTimeSource = null;
 
 // ============================================
-// DOM-хелперы
+// DOM-ХЕЛПЕРЫ
 // ============================================
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -71,10 +77,29 @@ function formatMinutes(ms) {
     return Math.round(ms / 60000);
 }
 
+// ============================================
+// SHA-256 с FALLBACK для Android WebView
+// ============================================
 async function sha256(text) {
-    const buf = new TextEncoder().encode(text);
-    const hash = await crypto.subtle.digest('SHA-256', buf);
-    return [...new Uint8Array(hash)].map(b => b.toString(16).padStart(2, '0')).join('');
+    // Пробуем нативный crypto.subtle
+    if (typeof crypto !== 'undefined' && crypto.subtle && crypto.subtle.digest) {
+        try {
+            const buf = new TextEncoder().encode(text);
+            const hash = await crypto.subtle.digest('SHA-256', buf);
+            return [...new Uint8Array(hash)].map(b => b.toString(16).padStart(2, '0')).join('');
+        } catch (e) {
+            console.warn('crypto.subtle failed, using fallback:', e.message);
+        }
+    }
+
+    // Fallback: простой FNV-1a hash (НЕ криптостойкий, но работает везде)
+    // ⚠️ ВАЖНО: если используете fallback, хеши в rules.json должны быть посчитаны так же
+    let h = 0x811c9dc5;
+    for (let i = 0; i < text.length; i++) {
+        h ^= text.charCodeAt(i);
+        h = Math.imul(h, 0x01000193);
+    }
+    return 'fb_' + (h >>> 0).toString(16).padStart(8, '0');
 }
 
 function haversineMeters(lat1, lon1, lat2, lon2) {
@@ -92,7 +117,7 @@ function haversineMeters(lat1, lon1, lat2, lon2) {
 // ============================================
 function toast(message, type = 'info', duration = 4000) {
     const root = $('#toast-root');
-    if (!root) return;
+    if (!root) { console.log('TOAST:', message); return; }
     const el = document.createElement('div');
     el.className = `toast ${type}`;
     el.textContent = message;
@@ -108,6 +133,7 @@ function toast(message, type = 'info', duration = 4000) {
 // ============================================
 function openModal(html, onMount) {
     const root = $('#modal-root');
+    if (!root) return null;
     const overlay = document.createElement('div');
     overlay.className = 'modal-overlay';
     overlay.innerHTML = `<div class="modal-card">${html}</div>`;
@@ -192,13 +218,30 @@ function checkGeofence(site, position) {
 function checkSchedule(site) {
     const sc = site.schedule;
     if (!sc) return { ok: true, kind: 'none' };
-    const date = new Date(now());
+
+    let date;
+    try {
+        date = new Date(now());
+    } catch (e) {
+        return { ok: false, reason: 'Ошибка времени' };
+    }
+
     const tz = sc.timezone || 'Asia/Krasnoyarsk';
-    const dayFmt = new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'short' });
-    const dayMap = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
-    const curDay = dayMap[dayFmt.format(date)];
-    const timeFmt = new Intl.DateTimeFormat('ru-RU', { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false });
-    const curTime = timeFmt.format(date);
+    let curDay, curTime;
+
+    try {
+        const dayFmt = new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'short' });
+        const dayMap = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+        curDay = dayMap[dayFmt.format(date)];
+
+        const timeFmt = new Intl.DateTimeFormat('ru-RU', { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false });
+        curTime = timeFmt.format(date);
+    } catch (e) {
+        console.warn('Intl failed, using local time:', e.message);
+        curDay = date.getDay();
+        curTime = `${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;
+    }
+
     const [ch, cm] = curTime.split(':').map(Number);
     const [fh, fm] = sc.from.split(':').map(Number);
     const [th, tm] = sc.to.split(':').map(Number);
@@ -207,6 +250,7 @@ function checkSchedule(site) {
     let timeOk;
     if (fromMin <= toMin) timeOk = curMin >= fromMin && curMin <= toMin;
     else timeOk = curMin >= fromMin || curMin <= toMin;
+
     const dayNames = ['вс','пн','вт','ср','чт','пт','сб'];
     if (dayOk && timeOk) return { ok: true, kind: 'ok' };
     return {
@@ -266,22 +310,28 @@ function isTimeTrusted() {
     return Date.now() - savedAt < TIME_TRUST_MAX_AGE;
 }
 
+function shouldBlockOnTimeFailure() {
+    return window.CONFIG?.ui?.blockOnTimeSyncFailure === true;
+}
+
 // ============================================
-// IndexedDB — второй слой счётчиков
+// IndexedDB
 // ============================================
 const IDB_NAME = 'trenerUsage';
 const IDB_STORE = 'usage';
 
 function idbOpen() {
     return new Promise((resolve, reject) => {
-        const req = indexedDB.open(IDB_NAME, 1);
-        req.onupgradeneeded = () => {
-            if (!req.result.objectStoreNames.contains(IDB_STORE)) {
-                req.result.createObjectStore(IDB_STORE);
-            }
-        };
-        req.onsuccess = () => resolve(req.result);
-        req.onerror = () => reject(req.error);
+        try {
+            const req = indexedDB.open(IDB_NAME, 1);
+            req.onupgradeneeded = () => {
+                if (!req.result.objectStoreNames.contains(IDB_STORE)) {
+                    req.result.createObjectStore(IDB_STORE);
+                }
+            };
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject(req.error);
+        } catch (e) { reject(e); }
     });
 }
 
@@ -354,22 +404,30 @@ async function addUsedMs(id, ms) {
 }
 
 async function checkDailyLimit(site) {
-    if (!isTimeTrusted()) {
+    // Проверка доверия времени
+    if (!isTimeTrusted() && shouldBlockOnTimeFailure()) {
         return {
             ok: false, used: 0, limit: site.limitMs || 0, left: 0, percent: 0,
             timeError: true,
             reason: 'Время не синхронизировано. Проверьте интернет.'
         };
     }
+
     const limit = site.limitMs || 0;
-    if (limit <= 0) return { ok: true, used: 0, limit: 0, left: 0, percent: 0 };
+    if (limit <= 0) {
+        return { ok: true, used: 0, limit: 0, left: 0, percent: 0 };
+    }
+
     const used = await getUsedMs(site.id);
     const left = Math.max(0, limit - used);
     const percent = Math.min(100, (used / limit) * 100);
-    if (used >= limit) return {
-        ok: false, used, limit, left: 0, percent: 100,
-        reason: `Лимит исчерпан (${formatMinutes(used)}/${formatMinutes(limit)} мин)`
-    };
+
+    if (used >= limit) {
+        return {
+            ok: false, used, limit, left: 0, percent: 100,
+            reason: `Лимит исчерпан (${formatMinutes(used)}/${formatMinutes(limit)} мин)`
+        };
+    }
     return { ok: true, used, limit, left, percent };
 }
 
@@ -391,7 +449,7 @@ function checkRequiredTests(site) {
     const passed = req.filter(isTestPassed).length;
     if (passed === req.length) return { ok: true, passed, total: req.length };
     const missing = req.filter(id => !isTestPassed(id));
-    const names = missing.map(id => window.TEST_REGISTRY.find(t => t.id === id)?.title || id);
+    const names = missing.map(id => (window.TEST_REGISTRY.find(t => t.id === id)?.title) || id);
     return {
         ok: false, passed, total: req.length, missing,
         reason: `Пройдено ${passed}/${req.length}. Не хватает: ${names.join(', ')}`
@@ -463,6 +521,8 @@ function askPassword(site, verifyFn) {
             </div>
         `);
 
+        if (!overlay) { resolve(null); return; }
+
         const input = overlay.querySelector('#pwd-input');
         const errEl = overlay.querySelector('#pwd-error');
         const dotsEl = overlay.querySelector('#pwd-dots');
@@ -531,24 +591,34 @@ async function requestPassword(site) {
 // ЗАГРУЗКА ДАННЫХ
 // ============================================
 async function fetchJson(path) {
-    const res = await fetch(url(path), { cache: 'no-store' });
+    const fullUrl = url(path);
+    console.log('📥 fetch:', fullUrl);
+    const res = await fetch(fullUrl, { cache: 'no-store' });
     if (!res.ok) throw new Error(`${path}: HTTP ${res.status}`);
     return res.json();
 }
 
 async function loadConfig() {
-    try { const c = await fetchJson('config.json'); window.setConfig(c); return c; }
-    catch (e) { console.error('config.json:', e); return null; }
+    try {
+        const c = await fetchJson('config.json');
+        window.setConfig(c);
+        console.log('✅ config.json загружен');
+        return c;
+    } catch (e) {
+        console.error('❌ config.json:', e.message);
+        return null;
+    }
 }
 
 // ============================================
-// ЗАГРУЗКА НОВОГО ФОРМАТА (rules.json)
+// ЗАГРУЗКА rules.json (НОВЫЙ ФОРМАТ)
 // ============================================
 async function loadRules() {
     try {
         const data = await fetchJson('access/rules.json');
+        console.log('📄 rules.json raw:', data);
 
-        // ---- Локации → geopoints ----
+        // Локации
         const geopoints = (data.locations || []).map(l => ({
             id: l.name,
             label: l.name,
@@ -557,7 +627,7 @@ async function loadRules() {
             radiusMeters: l.radius
         }));
 
-        // ---- Временные окна → schedules ----
+        // Временные окна
         const dayMap = { 'вс':0, 'пн':1, 'вт':2, 'ср':3, 'чт':4, 'пт':5, 'сб':6 };
         const schedules = (data.timeWindows || []).map(w => ({
             id: w.name,
@@ -568,22 +638,23 @@ async function loadRules() {
             timezone: w.timezone || 'Asia/Krasnoyarsk'
         }));
 
-        // ---- Сайты ----
+        // Сайты
         const sites = [];
         for (const s of (data.sites || [])) {
-            const id = s.url
+            const id = (s.url || s.name || 'unknown')
                 .replace(/^https?:\/\//, '')
                 .replace(/[^a-z0-9]/gi, '-')
                 .toLowerCase()
                 .slice(0, 40);
 
+            const minutesPerDay = Number(s.minutesPerDay) || 10;
             const site = {
                 id,
                 url: s.url,
-                name: s.name,
+                name: s.name || 'Без имени',
                 icon: s.icon || '🌐',
-                limitMs: (s.minutesPerDay || 10) * 60000,
-                requiredTestIds: s.tests || [],
+                limitMs: minutesPerDay * 60000,
+                requiredTestIds: Array.isArray(s.tests) ? s.tests : [],
                 geofence: s.location || null,
                 schedule: s.timeWindow || null,
                 intervalAccess: null,
@@ -593,30 +664,44 @@ async function loadRules() {
             // Интервальный доступ
             if (s.intervalWindow) {
                 const iw = s.intervalWindow;
+                const intervalMinutes = Number(iw.intervalMinutes) || 120;
+                const windowMinutes = Number(iw.windowMinutes) || 15;
+                let anchorAt = null;
+                try {
+                    anchorAt = iw.anchor ? new Date(iw.anchor).toISOString() : null;
+                } catch { anchorAt = null; }
+
                 site.intervalAccess = {
                     enabled: true,
-                    intervalMs: (iw.intervalMinutes || 120) * 60000,
-                    windowMs: (iw.windowMinutes || 15) * 60000,
-                    anchorAt: iw.anchor ? new Date(iw.anchor).toISOString() : null,
+                    intervalMs: intervalMinutes * 60000,
+                    windowMs: windowMinutes * 60000,
+                    anchorAt,
                     timezone: 'Asia/Krasnoyarsk'
                 };
             }
 
-            // Пароль — считаем хеши из plain-паролей
-            if (s.password && s.password.real && s.password.duress) {
-                const realHash = await sha256(s.password.real);
-                const duressHash = await sha256(s.password.duress);
-                site.password = {
-                    enabled: true,
-                    mode: s.password.mode || 'requireAlways',
-                    realHash,
-                    duressHash,
-                    decoyUrl: s.password.decoyUrl || 'https://example.com',
-                    decoyName: s.password.decoyName || 'Example.com',
-                    maxAttempts: s.password.maxAttempts || 3,
-                    blockDurationMs: (s.password.blockMinutes || 30) * 60000,
-                    hint: s.password.hint || null
-                };
+            // Пароль — считаем хеши
+            if (s.password && s.password.real) {
+                try {
+                    const realHash = await sha256(String(s.password.real));
+                    const duressHash = s.password.duress
+                        ? await sha256(String(s.password.duress))
+                        : null;
+
+                    site.password = {
+                        enabled: true,
+                        mode: s.password.mode || 'requireAlways',
+                        realHash,
+                        duressHash,
+                        decoyUrl: s.password.decoyUrl || 'https://example.com',
+                        decoyName: s.password.decoyName || 'Example.com',
+                        maxAttempts: Number(s.password.maxAttempts) || 3,
+                        blockDurationMs: (Number(s.password.blockMinutes) || 30) * 60000,
+                        hint: s.password.hint || null
+                    };
+                } catch (e) {
+                    console.error('Ошибка хеширования пароля для', site.name, e);
+                }
             }
 
             sites.push(site);
@@ -636,16 +721,23 @@ async function loadRules() {
 }
 
 // ============================================
-// ЗАГРУЗКА СТАРОГО ФОРМАТА (fallback)
+// ЗАГРУЗКА СТАРОГО ФОРМАТА (FALLBACK)
 // ============================================
 async function loadSites() {
     try {
         const f = window.CONFIG?.access?.sitesFile || 'access/sites.json';
         const d = await fetchJson(f);
+        // Нормализуем: если нет limitMs, но есть minutesPerDay
+        (d.sites || []).forEach(s => {
+            if (!s.limitMs && s.minutesPerDay) s.limitMs = s.minutesPerDay * 60000;
+            if (!s.limitMs) s.limitMs = 10 * 60000;
+        });
         window.setSitesConfig(d);
+        console.log(`✅ sites.json загружен: ${d.sites?.length || 0} сайтов`);
         return d;
-    } catch (e) { console.error('sites.json:', e); return null; }
+    } catch (e) { console.error('❌ sites.json:', e.message); return null; }
 }
+
 async function loadGeopoints() {
     try {
         const f = window.CONFIG?.access?.geopointsFile || 'access/geopoints.json';
@@ -653,6 +745,7 @@ async function loadGeopoints() {
         window.setGeopoints(d.geopoints || []);
     } catch { window.setGeopoints([]); }
 }
+
 async function loadSchedules() {
     try {
         const f = window.CONFIG?.access?.schedulesFile || 'access/schedules.json';
@@ -660,6 +753,7 @@ async function loadSchedules() {
         window.setSchedules(d.schedules || []);
     } catch { window.setSchedules([]); }
 }
+
 async function loadTestSets() {
     try {
         const f = window.CONFIG?.access?.testSetsFile || 'access/test-sets.json';
@@ -677,7 +771,11 @@ async function loadAllTests() {
             try { return await fetchJson(e.file); } catch { return null; }
         }));
         window.setTestRegistry(loaded.filter(Boolean));
-    } catch { window.setTestRegistry([]); }
+        console.log(`✅ Тесты загружены: ${window.TEST_REGISTRY.length}`);
+    } catch (e) {
+        console.warn('⚠️ tests не загружены:', e.message);
+        window.setTestRegistry([]);
+    }
 }
 
 function resolveRefs() {
@@ -701,7 +799,8 @@ async function syncTime() {
 
     for (const p of providers) {
         try {
-            const res = await fetch(url(p.url), { cache: 'no-store' });
+            const fullUrl = url(p.url);
+            const res = await fetch(fullUrl, { cache: 'no-store' });
             if (!res.ok) continue;
             const json = await res.json();
 
@@ -726,6 +825,7 @@ async function syncTime() {
             localStorage.setItem('serverSyncAt', String(Date.now()));
             localStorage.setItem('serverSource', p.name);
 
+            console.log(`✅ Время синхронизировано через ${p.name}, offset=${Math.round(state.serverOffset/1000)}с`);
             updateTimeStatus(true, p.name);
             return true;
         } catch (e) {
@@ -741,6 +841,7 @@ async function syncTime() {
         state.serverOffset = parseInt(saved, 10);
         state.serverSynced = false;
         lastTimeSource = savedSource;
+        console.log('⚠️ Время из кэша:', savedSource);
         updateTimeStatus(false);
         return false;
     }
@@ -748,6 +849,7 @@ async function syncTime() {
     state.serverOffset = 0;
     state.serverSynced = false;
     lastTimeSource = null;
+    console.warn('❌ Время не синхронизировано');
     updateTimeStatus(false);
     return false;
 }
@@ -804,9 +906,12 @@ function renderTopics() {
         cont.appendChild(btn);
     });
 
-    $('#html-count').textContent = `${counts.html}`;
-    $('#css-count').textContent  = `${counts.css}`;
-    $('#js-count').textContent   = `${counts.js}`;
+    const htmlCountEl = $('#html-count');
+    const cssCountEl = $('#css-count');
+    const jsCountEl = $('#js-count');
+    if (htmlCountEl) htmlCountEl.textContent = `${counts.html}`;
+    if (cssCountEl) cssCountEl.textContent = `${counts.css}`;
+    if (jsCountEl) jsCountEl.textContent = `${counts.js}`;
 }
 
 function getSitesUsingTest(testId) {
@@ -820,6 +925,7 @@ function initAccordion() {
         h.addEventListener('click', () => {
             const list = document.getElementById(h.dataset.target);
             const section = h.closest('.category-section');
+            if (!list || !section) return;
             section.classList.toggle('open');
             list.classList.toggle('collapsed');
         });
@@ -831,6 +937,8 @@ function initAccordion() {
 // ============================================
 async function renderSites() {
     const list = $('#sites-list');
+    if (!list) return;
+
     const cfg = window.SITES_CONFIG;
     if (!cfg?.sites?.length) {
         list.innerHTML = '<div class="summary-empty">Нет доступных сайтов</div>';
@@ -842,7 +950,7 @@ async function renderSites() {
     let pos = null;
     const hasGeo = cfg.sites.some(s => s.geofence);
     if (hasGeo) {
-        try { pos = await getCurrentPosition(); } catch {}
+        try { pos = await getCurrentPosition(); } catch (e) { console.warn('geo:', e.message); }
     }
 
     for (const site of cfg.sites) {
@@ -880,6 +988,7 @@ async function buildSiteCard(site, pos) {
         chips.push(`<span class="status-chip error">⚠ время</span>`);
     }
 
+    // Счётчик — показываем всегда, если лимит > 0 ИЛИ если есть использованное время
     if (lim.limit > 0) {
         const used = formatMinutes(lim.used);
         const tot = formatMinutes(lim.limit);
@@ -887,6 +996,8 @@ async function buildSiteCard(site, pos) {
         if (lim.percent >= 100) chipClass = 'error';
         else if (lim.percent >= 80) chipClass = 'warn';
         chips.push(`<span class="status-chip ${chipClass}">⏱ ${used}/${tot} мин</span>`);
+    } else if (lim.used > 0) {
+        chips.push(`<span class="status-chip info">⏱ ${formatTime(lim.used)}</span>`);
     }
 
     if (site.schedule) {
@@ -1053,7 +1164,7 @@ async function showSiteDetails(site, pos) {
 // ОТКРЫТИЕ САЙТА
 // ============================================
 async function tryOpenSite(site) {
-    if (!isTimeTrusted()) {
+    if (!isTimeTrusted() && shouldBlockOnTimeFailure()) {
         toast('⚠ Время не синхронизировано. Подключите интернет.', 'error', 6000);
         return;
     }
@@ -1100,18 +1211,22 @@ async function tryOpenSite(site) {
 function openSiteContent(site) {
     if (site._isDecoy) {
         if (window.AndroidBridge?.openSite) {
-            window.AndroidBridge.openSite(site.url, 'decoy', site.limitMs || 600000);
-            return;
+            try {
+                window.AndroidBridge.openSite(site.url, 'decoy', site.limitMs || 600000);
+                return;
+            } catch (e) { console.error('AndroidBridge.openSite error:', e); }
         }
         window.open(site.url, '_blank');
         return;
     }
 
     if (window.AndroidBridge?.openSite) {
-        window.AndroidBridge.openSite(site.url, site.id, site.limitMs);
-        startTracking(site);
-        toast(`✅ Открыто: ${site.name}`, 'success');
-        return;
+        try {
+            window.AndroidBridge.openSite(site.url, site.id, site.limitMs);
+            startTracking(site);
+            toast(`✅ Открыто: ${site.name}`, 'success');
+            return;
+        } catch (e) { console.error('AndroidBridge.openSite error:', e); }
     }
 
     const win = window.open(site.url, '_blank');
@@ -1124,7 +1239,7 @@ function openSiteContent(site) {
 }
 
 // ============================================
-// УЧЁТ ВРЕМЕНИ — ОДИН ИНТЕРВАЛ
+// УЧЁТ ВРЕМЕНИ
 // ============================================
 function startTracking(site) {
     stopTracking();
@@ -1215,6 +1330,8 @@ function updateActiveSiteChip(siteId, leftMs) {
 async function renderSummary() {
     const list = $('#summary-list');
     const dateEl = $('#summary-date');
+    if (!list) return;
+
     const sites = window.SITES_CONFIG?.sites || [];
 
     const d = new Date(now());
@@ -1224,7 +1341,9 @@ async function renderSummary() {
         ? `<span class="status-chip ok" style="font-size:0.72rem;margin-left:8px">✓ время</span>`
         : `<span class="status-chip error" style="font-size:0.72rem;margin-left:8px">⚠ время</span>`;
 
-    dateEl.innerHTML = `${days[d.getDay()]}, ${d.toLocaleDateString('ru-RU')}${trustBadge}`;
+    if (dateEl) {
+        dateEl.innerHTML = `${days[d.getDay()]}, ${d.toLocaleDateString('ru-RU')}${trustBadge}`;
+    }
 
     const items = [];
     for (const s of sites) {
@@ -1293,18 +1412,17 @@ function startTest(testId) {
     state.userAnswers = {};
 
     $$('.screen').forEach(s => s.classList.remove('active'));
-    $('#screen-quiz').classList.add('active');
+    $('#screen-quiz')?.classList.add('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    $('#quiz-title').textContent = test.title;
-    $('#test-description').textContent = test.description;
+    if ($('#quiz-title')) $('#quiz-title').textContent = test.title;
+    if ($('#test-description')) $('#test-description').textContent = test.description;
 
-    $('#check-btn').style.display = 'inline-block';
-    $('#check-btn').disabled = false;
-    $('#reset-btn').style.display = 'none';
-    $('#result-container').classList.add('hidden');
-    $('#score-display').innerHTML = '';
-    $('#detailed-results').innerHTML = '';
+    if ($('#check-btn')) { $('#check-btn').style.display = 'inline-block'; $('#check-btn').disabled = false; }
+    if ($('#reset-btn')) $('#reset-btn').style.display = 'none';
+    if ($('#result-container')) $('#result-container').classList.add('hidden');
+    if ($('#score-display')) $('#score-display').innerHTML = '';
+    if ($('#detailed-results')) $('#detailed-results').innerHTML = '';
 
     renderQuiz();
 }
@@ -1346,8 +1464,11 @@ function renderQuiz() {
         });
         html += `</div>`;
     });
-    $('#quiz-container').innerHTML = html;
-    $('#quiz-container').addEventListener('change', handleAnswerChange);
+    const container = $('#quiz-container');
+    if (container) {
+        container.innerHTML = html;
+        container.addEventListener('change', handleAnswerChange);
+    }
 }
 
 function handleAnswerChange(e) {
@@ -1377,13 +1498,15 @@ function checkAnswers() {
         if (correct) score++;
 
         const card = document.querySelector(`.question-card[data-qid="${q.id}"]`);
-        card.querySelectorAll('.option-label').forEach((label, i) => {
-            const input = label.querySelector('input');
-            label.classList.remove('correct', 'incorrect');
-            if (q.correct.includes(i)) label.classList.add('correct');
-            else if (ua.includes(i)) label.classList.add('incorrect');
-            input.disabled = true;
-        });
+        if (card) {
+            card.querySelectorAll('.option-label').forEach((label, i) => {
+                const input = label.querySelector('input');
+                label.classList.remove('correct', 'incorrect');
+                if (q.correct.includes(i)) label.classList.add('correct');
+                else if (ua.includes(i)) label.classList.add('incorrect');
+                if (input) input.disabled = true;
+            });
+        }
 
         detailsHtml += `<div class="result-item ${correct ? 'success' : 'fail'}">
             <p><strong>Вопрос ${index + 1}:</strong> ${correct ? '✅ Верно' : '❌ Неверно'}</p>
@@ -1391,13 +1514,17 @@ function checkAnswers() {
         </div>`;
     });
 
-    $('#score-display').innerHTML = `Вы набрали <span>${score}</span> из <span>${total}</span>`;
-    $('#detailed-results').innerHTML = detailsHtml;
-    $('#result-container').classList.remove('hidden');
+    if ($('#score-display')) {
+        $('#score-display').innerHTML = `Вы набрали <span>${score}</span> из <span>${total}</span>`;
+    }
+    if ($('#detailed-results')) $('#detailed-results').innerHTML = detailsHtml;
+    if ($('#result-container')) $('#result-container').classList.remove('hidden');
 
-    $('#check-btn').style.display = 'none';
-    $('#reset-btn').style.display = 'inline-block';
-    $('#reset-btn').scrollIntoView({ behavior: 'smooth' });
+    if ($('#check-btn')) $('#check-btn').style.display = 'none';
+    if ($('#reset-btn')) {
+        $('#reset-btn').style.display = 'inline-block';
+        $('#reset-btn').scrollIntoView({ behavior: 'smooth' });
+    }
 
     if (score === total) {
         markTestPassed(state.currentTest.id);
@@ -1414,7 +1541,7 @@ function resetQuiz() {
 
 function goBack() {
     $$('.screen').forEach(s => s.classList.remove('active'));
-    $('#screen-topics').classList.add('active');
+    $('#screen-topics')?.classList.add('active');
     state.currentTest = null;
     state.userAnswers = {};
     renderTopics();
@@ -1425,18 +1552,21 @@ function goBack() {
 // НАСТРОЙКИ
 // ============================================
 function renderSettings() {
-    $('#diag-base').textContent = BASE_URL;
-    $('#diag-offset').textContent = `${Math.round(state.serverOffset / 1000)}с`;
-    $('#diag-now').textContent = new Date(now()).toLocaleString('ru-RU');
-    $('#diag-time-trust').textContent = isTimeTrusted() ? '✓ доверенное' : '⚠ нет';
-    $('#diag-time-source').textContent = lastTimeSource || (state.serverSynced ? '—' : 'кэш');
-    $('#diag-geo').textContent = state.lastPosition
-        ? `${state.lastPosition.lat.toFixed(4)}, ${state.lastPosition.lon.toFixed(4)}`
-        : 'нет';
-    $('#diag-tests').textContent = window.TEST_REGISTRY.length;
-    $('#diag-sites').textContent = (window.SITES_CONFIG?.sites || []).length;
+    if ($('#diag-base')) $('#diag-base').textContent = BASE_URL;
+    if ($('#diag-offset')) $('#diag-offset').textContent = `${Math.round(state.serverOffset / 1000)}с`;
+    if ($('#diag-now')) $('#diag-now').textContent = new Date(now()).toLocaleString('ru-RU');
+    if ($('#diag-time-trust')) $('#diag-time-trust').textContent = isTimeTrusted() ? '✓ доверенное' : '⚠ нет';
+    if ($('#diag-time-source')) $('#diag-time-source').textContent = lastTimeSource || (state.serverSynced ? '—' : 'кэш');
+    if ($('#diag-geo')) {
+        $('#diag-geo').textContent = state.lastPosition
+            ? `${state.lastPosition.lat.toFixed(4)}, ${state.lastPosition.lon.toFixed(4)}`
+            : 'нет';
+    }
+    if ($('#diag-tests')) $('#diag-tests').textContent = window.TEST_REGISTRY.length;
+    if ($('#diag-sites')) $('#diag-sites').textContent = (window.SITES_CONFIG?.sites || []).length;
 
     const listEl = $('#mark-tests-list');
+    if (!listEl) return;
     listEl.innerHTML = '';
     window.TEST_REGISTRY.forEach(test => {
         const passed = isTestPassed(test.id);
@@ -1456,13 +1586,43 @@ function renderSettings() {
 }
 
 // ============================================
+// СБРОС КЕША
+// ============================================
+async function clearAllCaches() {
+    try {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+        console.log('🗑 Кеш очищен:', keys);
+    } catch (e) { console.warn('clearAllCaches:', e); }
+
+    try {
+        if (navigator.serviceWorker) {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(regs.map(r => r.unregister()));
+            console.log('🗑 SW отрегистрированы:', regs.length);
+        }
+    } catch (e) { console.warn('SW unregister:', e); }
+
+    // Очищаем IndexedDB usage
+    try { await idbClear(); } catch (e) {}
+
+    toast('Кеш очищен. Перезагрузка...', 'success', 2000);
+    setTimeout(() => location.reload(), 1500);
+}
+
+// Экспортируем для возможного вызова из UI
+window.clearAllCaches = clearAllCaches;
+
+// ============================================
 // НАВИГАЦИЯ
 // ============================================
 function switchScreen(name) {
     $$('.screen').forEach(s => s.classList.remove('active'));
     $$('.nav-tab').forEach(t => t.classList.remove('active'));
-    $(`#screen-${name}`).classList.add('active');
-    $(`.nav-tab[data-screen="${name}"]`).classList.add('active');
+    const screenEl = $(`#screen-${name}`);
+    const tabEl = $(`.nav-tab[data-screen="${name}"]`);
+    if (screenEl) screenEl.classList.add('active');
+    if (tabEl) tabEl.classList.add('active');
 
     if (name === 'sites') renderSites();
     if (name === 'summary') renderSummary();
@@ -1474,27 +1634,64 @@ function switchScreen(name) {
 // ============================================
 // СЛУШАТЕЛИ
 // ============================================
-$$('.nav-tab').forEach(t => t.addEventListener('click', () => switchScreen(t.dataset.screen)));
-$('#check-btn').addEventListener('click', checkAnswers);
-$('#reset-btn').addEventListener('click', resetQuiz);
-$('#back-btn').addEventListener('click', goBack);
+function setupListeners() {
+    $$('.nav-tab').forEach(t => t.addEventListener('click', () => switchScreen(t.dataset.screen)));
+    const checkBtn = $('#check-btn');
+    const resetBtn = $('#reset-btn');
+    const backBtn = $('#back-btn');
+    if (checkBtn) checkBtn.addEventListener('click', checkAnswers);
+    if (resetBtn) resetBtn.addEventListener('click', resetQuiz);
+    if (backBtn) backBtn.addEventListener('click', goBack);
+}
 
+// ============================================
+// ДИАГНОСТИКА
+// ============================================
+function printDiagnostics() {
+    console.log('=== 🔍 ДИАГНОСТИКА ===');
+    console.log('BASE_URL:', BASE_URL);
+    console.log('location.origin:', location.origin);
+    console.log('location.href:', location.href);
+    console.log('crypto.subtle:', !!(crypto && crypto.subtle));
+    console.log('AndroidBridge:', !!window.AndroidBridge);
+    console.log('AndroidBridge.getBaseUrl:', window.AndroidBridge?.getBaseUrl?.());
+    console.log('indexedDB:', !!window.indexedDB);
+    console.log('serviceWorker:', 'serviceWorker' in navigator);
+    console.log('geolocation:', !!navigator.geolocation);
+    console.log('CONFIG:', window.CONFIG);
+    console.log('serverSynced:', state.serverSynced);
+    console.log('serverOffset:', state.serverOffset);
+    console.log('isTimeTrusted:', isTimeTrusted());
+    console.log('SITES_CONFIG:', window.SITES_CONFIG);
+    console.log('sites count:', window.SITES_CONFIG?.sites?.length || 0);
+    console.log('GEOPOINTS:', window.GEOPOINTS?.length || 0);
+    console.log('SCHEDULES:', window.SCHEDULES?.length || 0);
+    console.log('TEST_REGISTRY:', window.TEST_REGISTRY?.length || 0);
+    console.log('======================');
+}
 
 // ============================================
 // ИНИЦИАЛИЗАЦИЯ
 // ============================================
 (async function init() {
-    console.log('🚀 Старт');
+    console.log('🚀 Старт приложения');
 
+    printDiagnostics();
+
+    setupListeners();
+
+    // 1. Конфиг
     const cfg = await loadConfig();
+
+    // 2. Синхронизация времени
     await syncTime();
 
-    // Пробуем новый формат rules.json
+    // 3. Пробуем новый формат rules.json
     const rulesLoaded = await loadRules();
 
+    // 4. Fallback на старый формат
     if (!rulesLoaded) {
-        // Fallback на старые файлы
-        console.log('📦 Используем старый формат (sites.json + geopoints.json + schedules.json)');
+        console.log('📦 Fallback: старый формат (sites.json + geopoints.json + schedules.json)');
         await Promise.all([
             loadSites(),
             loadGeopoints(),
@@ -1503,12 +1700,26 @@ $('#back-btn').addEventListener('click', goBack);
         ]);
     }
 
+    // 5. Тесты
     await loadAllTests();
+
+    // 6. Разрешаем ссылки (строковые ссылки → объекты)
     resolveRefs();
 
+    // 7. Первичный рендер
     renderTopics();
     initAccordion();
 
+    // Повторный рендер после загрузки данных (на случай, если что-то пришло позже)
+    if (window.SITES_CONFIG?.sites?.length) {
+        console.log(`✅ Готово. Сайтов: ${window.SITES_CONFIG.sites.length}`);
+    } else {
+        console.warn('⚠️ Сайты не загружены!');
+    }
+
+    printDiagnostics();
+
+    // 8. Сохранение при закрытии
     window.addEventListener('beforeunload', () => {
         if (state.activeSite) {
             const { id, startedAt, plannedMs, lastCommittedMs } = state.activeSite;
@@ -1522,6 +1733,7 @@ $('#back-btn').addEventListener('click', goBack);
         }
     });
 
+    // 9. Периодические задачи
     setInterval(syncTime, cfg?.timeSource?.resyncIntervalMs || 60000);
 
     setInterval(() => {
@@ -1534,11 +1746,5 @@ $('#back-btn').addEventListener('click', goBack);
         }
     }, 30000);
 
-    console.log('✅ Готово. Время:', state.serverSynced ? 'синхронизировано' : (isTimeTrusted() ? 'кэш' : 'нет'));
-    console.log('📊 Загружено:', {
-        sites: window.SITES_CONFIG?.sites?.length || 0,
-        geopoints: window.GEOPOINTS?.length || 0,
-        schedules: window.SCHEDULES?.length || 0,
-        tests: window.TEST_REGISTRY?.length || 0
-    });
+    console.log('✅ Приложение готово');
 })();
