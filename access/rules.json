@@ -1,29 +1,41 @@
 {
   "version": "1.0",
+  "_comment": "Конфигурация приложения. Комментарии оформлены полями _comment/_note — строгий JSON их допускает, а код должен игнорировать ключи с префиксом '_'.",
 
   "locations": [
     {
+      "_comment": "Домашняя точка. Радиус — в метрах.",
       "name": "Дом",
       "lat": 54.70708,
       "lon": 86.21228,
       "radius": 100
     },
     {
+      "_comment": "Рабочий адрес (Москва).",
       "name": "Работа",
       "lat": 55.760000,
       "lon": 37.640000,
       "radius": 150
     },
     {
-      "name": "Красная площадь",
-      "lat": 55.751244,
-      "lon": 37.618423,
+      "_comment": "Остановка рядом с домом.",
+      "name": "Остановка гермес",
+      "lat": 54.704438,
+      "lon": 86.210694,
+      "radius": 200
+    },
+    {
+      "_comment": "локация, мама - 50",
+      "name": "Мама - 50 м",
+      "lat": 54.685131,
+      "lon": 86.194066,
       "radius": 200
     }
   ],
 
   "timeWindows": [
     {
+      "_comment": "Рабочие часы по будням.",
       "name": "Будни 9–18",
       "days": ["пн", "вт", "ср", "чт", "пт"],
       "from": "09:00",
@@ -31,6 +43,7 @@
       "timezone": "Asia/Krasnoyarsk"
     },
     {
+      "_comment": "Широкое окно на каждый день.",
       "name": "Каждый день 8–22",
       "days": ["пн", "вт", "ср", "чт", "пт", "сб", "вс"],
       "from": "08:00",
@@ -38,6 +51,7 @@
       "timezone": "Asia/Krasnoyarsk"
     },
     {
+      "_comment": "Суббота и воскресенье.",
       "name": "Выходные 10–20",
       "days": ["сб", "вс"],
       "from": "10:00",
@@ -45,6 +59,7 @@
       "timezone": "Asia/Krasnoyarsk"
     },
     {
+      "_comment": "Вечернее окно на каждый день.",
       "name": "Вечер 19–23",
       "days": ["пн", "вт", "ср", "чт", "пт", "сб", "вс"],
       "from": "19:00",
@@ -54,7 +69,8 @@
   ],
 
   "sites": [
-      {
+    {
+      "_comment": "Без ограничений по месту/времени/паролю.",
       "name": "ЕГРН",
       "url": "https://www.list-org.com/",
       "icon": "🌐",
@@ -66,32 +82,47 @@
       "password": null
     },
     {
-      "name": "Example.com",
-      "url": "https://example.com",
-      "icon": "🌐",
-      "minutesPerDay": 5,
+      "_comment": "Внутренний портал ГНИВЦ.",
+      "name": "ГНИВЦ",
+      "url": "https://snk-gnivc.motivity.ru/login",
+      "icon": "🙋‍♂️",
+      "minutesPerDay": 120,
       "location": null,
       "timeWindow": null,
       "intervalWindow": null,
       "tests": [],
       "password": null
     },
-    {
-      "name": "Wikipedia",
-      "url": "https://wikipedia.org",
-      "icon": "📚",
+       {
+      "_comment": "Только из дома, без пароля.",
+      "name": "АВИТО",
+      "url": "https://www.avito.ru/",
+      "icon": "🐙",
       "minutesPerDay": 10,
-      "location": "Красная площадь",
+      "location": "Дом",
+      "timeWindow": null,
+      "intervalWindow": null,
+      "tests": ["html-basics", "css-basics"],
+      "password": null
+    },
+    {
+      "_comment": "Сайт с паролем: requireAlways — спрашивать пароль при каждом входе; duress-пароль ведёт на decoyUrl.",
+      "name": "Большой сайт",
+      "url": "https://dating.vk.ru/",
+      "icon": "📚",
+      "minutesPerDay": 20,
+      "location": "Остановка гермес",
       "timeWindow": "Будни 9–18",
       "intervalWindow": {
+        "_comment": "Доступ окнами: 15 минут каждые 120 минут, отсчёт от anchor.",
         "intervalMinutes": 120,
-        "windowMinutes": 15,
+        "windowMinutes": 10,
         "anchor": "2026-01-01T00:00"
       },
       "tests": ["html-basics", "html-formatting"],
       "password": {
-        "real": "sunrise-42",
-        "duress": "cloud-17",
+        "real": "12312",
+        "duress": "2730",
         "decoyUrl": "https://example.com",
         "decoyName": "Example.com",
         "maxAttempts": 3,
@@ -101,8 +132,9 @@
       }
     },
     {
+      "_comment": "requireOnce — пароль спрашивается один раз за сессию.",
       "name": "MDN Web Docs",
-      "url": "https://developer.mozilla.org",
+      "url": "https://tabor.ru/",
       "icon": "💻",
       "minutesPerDay": 15,
       "location": "Работа",
@@ -120,14 +152,16 @@
         "hint": null
       }
     },
-       {
+    {
+      "_comment": "ИСПРАВЛЕНО: битый icon заменён на 📖; location теперь ссылается на существующую локацию (см. добавленную 'Красная площадь').",
       "name": "Wikipedia",
       "url": "https://ru.wikipedia.org/",
-      "icon": "�",
+      "icon": "📖",
       "minutesPerDay": 10,
-      "location": "Красная площадь",
-      "timeWindow": "Будни 9–18",
+      "location": "Мама - 50 м",
+      "timeWindow": "Каждый день 8–22",
       "intervalWindow": {
+        "_comment": "Окна доступа: 15 минут каждые 120 минут.",
         "intervalMinutes": 120,
         "windowMinutes": 15,
         "anchor": "2026-01-01T00:00"
@@ -145,6 +179,7 @@
       }
     },
     {
+      "_comment": "Только из дома, без пароля.",
       "name": "GitHub",
       "url": "https://github.com",
       "icon": "🐙",
