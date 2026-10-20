@@ -26,7 +26,7 @@
     },
     {
       "_comment": "локация, мама - 50",
-      "name": "Мама - 50 м",
+      "name": "Мама",
       "lat": 54.685131,
       "lon": 86.194066,
       "radius": 200
@@ -110,12 +110,12 @@
       "name": "Большой сайт",
       "url": "https://dating.vk.ru/",
       "icon": "📚",
-      "minutesPerDay": 20,
-      "location": "Остановка гермес",
-      "timeWindow": "Будни 9–18",
+      "minutesPerDay": 30,
+      "location": "Мама",
+      "timeWindow": "Каждый день 8–22",
       "intervalWindow": {
         "_comment": "Доступ окнами: 15 минут каждые 120 минут, отсчёт от anchor.",
-        "intervalMinutes": 120,
+        "intervalMinutes": 20,
         "windowMinutes": 10,
         "anchor": "2026-01-01T00:00"
       },
@@ -136,14 +136,14 @@
       "name": "MDN Web Docs",
       "url": "https://tabor.ru/",
       "icon": "💻",
-      "minutesPerDay": 15,
-      "location": "Работа",
+      "minutesPerDay": 30,
+      "location": "Мама",
       "timeWindow": "Каждый день 8–22",
       "intervalWindow": null,
       "tests": ["html-basics", "css-basics", "js-basics"],
       "password": {
-        "real": "midnight-ocean-77",
-        "duress": "weather-page-12",
+        "real": "12312",
+        "duress": "2730",
         "decoyUrl": "https://ru.wikipedia.org/wiki/Погода",
         "decoyName": "Погода",
         "maxAttempts": 5,
@@ -158,7 +158,7 @@
       "url": "https://ru.wikipedia.org/",
       "icon": "📖",
       "minutesPerDay": 10,
-      "location": "Мама - 50 м",
+      "location": "Мама",
       "timeWindow": "Каждый день 8–22",
       "intervalWindow": {
         "_comment": "Окна доступа: 15 минут каждые 120 минут.",
