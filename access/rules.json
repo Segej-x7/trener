@@ -189,6 +189,18 @@
       "intervalWindow": null,
       "tests": ["html-basics", "css-basics"],
       "password": null
-    }
+    },
+    {
+      "_comment": "Последний",
+      "name": "ИНФО",
+      "url": "https://tabor.ru/",
+      "icon": "🙋‍♂️",
+      "minutesPerDay": 40,
+      "location": null,
+      "timeWindow": null,
+      "intervalWindow": null,
+      "tests": [],
+      "password": null
+    },
   ]
 }
