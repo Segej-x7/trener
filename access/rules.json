@@ -207,7 +207,7 @@
       "name": "ИНФО",
       "url": "https://tabor.ru/",
       "icon": "🙋‍♂️",
-      "minutesPerDay": 10,
+      "minutesPerDay": 20,
       "location": null,
       "timeWindow": null,
       "intervalWindow": null,
