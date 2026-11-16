@@ -11,10 +11,10 @@
       "radius": 100
     },
     {
-      "_comment": "Рабочий адрес (Москва).",
+      "_comment": "Рабочий адрес (Ленинск).",
       "name": "Работа",
-      "lat": 55.760000,
-      "lon": 37.640000,
+      "lat": 54.67961,
+      "lon": 86.17859,
       "radius": 150
     },
     {
@@ -35,11 +35,27 @@
 
   "timeWindows": [
     {
-      "_comment": "Рабочие часы по будням.",
-      "name": "Будни 9–18",
+      "_comment": "Рабочие часы по будням обед.",
+      "name": "Будни 13–00",
       "days": ["пн", "вт", "ср", "чт", "пт"],
-      "from": "09:00",
-      "to": "18:00",
+      "from": "13:00",
+      "to": "13:07",
+      "timezone": "Asia/Krasnoyarsk"
+    },
+    {
+      "_comment": "Рабочие часы по будням 8-00.",
+      "name": "Будни 8–00",
+      "days": ["пн", "вт", "ср", "чт", "пт"],
+      "from": "08:00",
+      "to": "08:07",
+      "timezone": "Asia/Krasnoyarsk"
+    },
+    {
+      "_comment": "Вечер будни мама 19-00.",
+      "name": "Будни мама 19–00",
+      "days": ["пн", "вт", "ср", "чт", "пт"],
+      "from": "19:00",
+      "to": "19:12",
       "timezone": "Asia/Krasnoyarsk"
     },
     {
@@ -191,25 +207,49 @@
       "password": null
     },
     {
-      "_comment": "Последний",
+      "_comment": "Работа утро в 8-00",
       "name": "ИНФО",
       "url": "https://tabor.ru/",
       "icon": "🙋‍♂️",
-      "minutesPerDay": 10,
-      "location": null,
-      "timeWindow": null,
+      "minutesPerDay": 5,
+      "location": "Рабочий адрес (Ленинск).",
+      "timeWindow": "Будни 8–00",
       "intervalWindow": null,
       "tests": [],
       "password": null
     },
     {
-      "_comment": "Самый последний",
+      "_comment": "Работа утро в 8-00",
       "name": "ИНФО",
       "url": "https://tabor.ru/",
       "icon": "🙋‍♂️",
-      "minutesPerDay": 20,
-      "location": null,
-      "timeWindow": null,
+      "minutesPerDay": 5,
+      "location": "Работа",
+      "timeWindow": "Будни 8–00",
+      "intervalWindow": null,
+      "tests": [],
+      "password": null
+    },
+    {
+      "_comment": "Работа обед в 13-00",
+      "name": "ИНФО",
+      "url": "https://tabor.ru/",
+      "icon": "🙋‍♂️",
+      "minutesPerDay": 5,
+      "location": "Работа",
+      "timeWindow": "Будни 13–00",
+      "intervalWindow": null,
+      "tests": [],
+      "password": null
+    },
+    {
+      "_comment": "Будни вечер мама 19–00",
+      "name": "ИНФО",
+      "url": "https://tabor.ru/",
+      "icon": "🙋‍♂️",
+      "minutesPerDay": 10,
+      "location": "Мама",
+      "timeWindow": "Будни мама 19–00",
       "intervalWindow": null,
       "tests": [],
       "password": null
