@@ -221,7 +221,7 @@
     {
       "_comment": "Работа утро в 8-00",
       "name": "ИНФО",
-      "url": "https://tabor.ru/",
+      "url": "https://ya.ru/",
       "icon": "🙋‍♂️",
       "minutesPerDay": 5,
       "location": "Работа",
@@ -233,7 +233,7 @@
     {
       "_comment": "Работа обед в 13-00",
       "name": "ИНФО",
-      "url": "https://tabor.ru/",
+      "url": "https://ya.ru/",
       "icon": "🙋‍♂️",
       "minutesPerDay": 10,
       "location": "Работа",
@@ -245,23 +245,11 @@
     {
       "_comment": "Будни вечер мама 19–00",
       "name": "ИНФО",
-      "url": "https://tabor.ru/",
+      "url": "https://ya.ru/",
       "icon": "🙋‍♂️",
       "minutesPerDay": 20,
       "location": "Мама",
       "timeWindow": "Будни мама 19–00",
-      "intervalWindow": null,
-      "tests": [],
-      "password": null
-    },
-    {
-      "_comment": "Проба",
-      "name": "ИНФО",
-      "url": "https://ya.ru",
-      "icon": "🙋‍♂️",
-      "minutesPerDay": 20,
-      "location": null,
-      "timeWindow": null,
       "intervalWindow": null,
       "tests": [],
       "password": null
