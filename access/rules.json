@@ -257,7 +257,7 @@
     {
       "_comment": "Проба",
       "name": "ИНФО",
-      "url": "https://tabor.ru/search?search%5Bcities%5D=near&search%5Bcountry_id%5D=5681&search%5Bfind_sex%5D=2&search%5Bonline%5D=on&search%5Btotal_online%5D=true",
+      "url": "https://ya.ru",
       "icon": "🙋‍♂️",
       "minutesPerDay": 20,
       "location": null,
