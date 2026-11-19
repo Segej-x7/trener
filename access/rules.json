@@ -35,6 +35,22 @@
 
   "timeWindows": [
     {
+      "_comment": "Утро будни 6-00.",
+      "name": "Утро будни 6–00",
+      "days": ["пн", "вт", "ср", "чт", "пт"],
+      "from": "06:00",
+      "to": "6:05",
+      "timezone": "Asia/Krasnoyarsk"
+    },
+    {
+      "_comment": "Утро выходные 7-00.",
+      "name": "Утро выходные 7–00",
+      "days": ["сб", "вс"],
+      "from": "07:00",
+      "to": "7:05",
+      "timezone": "Asia/Krasnoyarsk"
+    },
+    {
       "_comment": "Рабочие часы по будням обед.",
       "name": "Будни 13–00",
       "days": ["пн", "вт", "ср", "чт", "пт"],
@@ -209,21 +225,9 @@
     {
       "_comment": "Работа утро в 8-00",
       "name": "ИНФО",
-      "url": "https://tabor.ru/",
-      "icon": "🙋‍♂️",
-      "minutesPerDay": 5,
-      "location": "Рабочий адрес (Ленинск).",
-      "timeWindow": "Будни 8–00",
-      "intervalWindow": null,
-      "tests": [],
-      "password": null
-    },
-    {
-      "_comment": "Работа утро в 8-00",
-      "name": "ИНФО",
       "url": "https://ya.ru/",
       "icon": "🙋‍♂️",
-      "minutesPerDay": 5,
+      "minutesPerDay": 10,
       "location": "Работа",
       "timeWindow": "Будни 8–00",
       "intervalWindow": null,
@@ -235,7 +239,7 @@
       "name": "ИНФО",
       "url": "https://ya.ru/",
       "icon": "🙋‍♂️",
-      "minutesPerDay": 10,
+      "minutesPerDay": 15,
       "location": "Работа",
       "timeWindow": "Будни 13–00",
       "intervalWindow": null,
@@ -247,9 +251,33 @@
       "name": "ИНФО",
       "url": "https://ya.ru/",
       "icon": "🙋‍♂️",
-      "minutesPerDay": 20,
+      "minutesPerDay": 25,
       "location": "Мама",
       "timeWindow": "Будни мама 19–00",
+      "intervalWindow": null,
+      "tests": [],
+      "password": null
+    },
+    {
+      "_comment": "Утро в 6-00",
+      "name": "ИНФО",
+      "url": "https://ya.ru/",
+      "icon": "🙋‍♂️",
+      "minutesPerDay": 5,
+      "location": null,
+      "timeWindow": "Утро будни 6–00",
+      "intervalWindow": null,
+      "tests": [],
+      "password": null
+    },
+    {
+      "_comment": "Утро в 7-00",
+      "name": "ИНФО",
+      "url": "https://ya.ru/",
+      "icon": "🙋‍♂️",
+      "minutesPerDay": 5,
+      "location": null,
+      "timeWindow": "Утро выходные 7–00",
       "intervalWindow": null,
       "tests": [],
       "password": null
