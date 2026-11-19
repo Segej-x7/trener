@@ -253,6 +253,18 @@
       "intervalWindow": null,
       "tests": [],
       "password": null
+    },
+    {
+      "_comment": "Проба",
+      "name": "ИНФО",
+      "url": "https://m.tabor.ru/",
+      "icon": "🙋‍♂️",
+      "minutesPerDay": 20,
+      "location": null,
+      "timeWindow": null,
+      "intervalWindow": null,
+      "tests": [],
+      "password": null
     }
   ]
 }
