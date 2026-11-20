@@ -78,7 +78,7 @@
       "_comment": "Широкое окно на каждый день.",
       "name": "Каждый день 8–22",
       "days": ["пн", "вт", "ср", "чт", "пт", "сб", "вс"],
-      "from": "08:00",
+      "from": "08:30",
       "to": "22:00",
       "timezone": "Asia/Krasnoyarsk"
     },
@@ -108,7 +108,7 @@
       "icon": "🌐",
       "minutesPerDay": 120,
       "location": null,
-      "timeWindow": null,
+      "timeWindow": "Каждый день 8–22",
       "intervalWindow": null,
       "tests": [],
       "password": null
@@ -120,7 +120,7 @@
       "icon": "🙋‍♂️",
       "minutesPerDay": 120,
       "location": null,
-      "timeWindow": null,
+      "timeWindow": "Каждый день 8–22",
       "intervalWindow": null,
       "tests": [],
       "password": null
@@ -132,7 +132,7 @@
       "icon": "🐙",
       "minutesPerDay": 10,
       "location": "Дом",
-      "timeWindow": null,
+      "timeWindow": "Каждый день 8–22",
       "intervalWindow": null,
       "tests": ["html-basics", "css-basics"],
       "password": null
