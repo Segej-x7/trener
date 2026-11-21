@@ -281,6 +281,18 @@
       "intervalWindow": null,
       "tests": [],
       "password": null
+    },
+    {
+      "_comment": "Утро в 7-00",
+      "name": "ИНФО",
+      "url": "https://ya.ru/",
+      "icon": "🙋‍♂️",
+      "minutesPerDay": 15,
+      "location": null,
+      "timeWindow": null,
+      "intervalWindow": null,
+      "tests": [],
+      "password": null
     }
   ]
 }
